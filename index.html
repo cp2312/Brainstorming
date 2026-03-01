@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Brainstorming Colaborativo</title>
+
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      min-height: 100vh;
+      margin: 0;
+      padding: 30px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: rgba(255,255,255,0.1);
+      padding: 30px;
+      border-radius: 15px;
+      backdrop-filter: blur(10px);
+    }
+
+    h1, h2 {
+      text-align: center;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+      margin-bottom: 10px;
+      background: #00e6e6;
+      color: #333;
+      font-weight: bold;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    li {
+      background: rgba(255,255,255,0.15);
+      margin-bottom: 8px;
+      padding: 10px;
+      border-radius: 8px;
+    }
+
+    .conclusion {
+      background: rgba(0,0,0,0.3);
+      padding: 20px;
+      border-radius: 10px;
+      margin-top: 20px;
+      font-size: 18px;
+    }
+
+    .contador {
+      text-align: center;
+      margin: 15px 0;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+  <h1>🧠 Brainstorming Colaborativo</h1>
+  <h2>¿Qué crees que es el brainstorming?</h2>
+
+  <input type="text" id="idea" placeholder="Escribe tu idea aquí">
+  <button onclick="enviarIdea()">Enviar idea</button>
+
+  <p class="contador">Ideas registradas: <span id="total">0</span></p>
+
+  <ul id="lista"></ul>
+
+  <button onclick="mostrarConclusion()">✨ Generar conclusión del grupo</button>
+
+  <div class="conclusion" id="resultado"></div>
+</div>
+
+<!-- FIREBASE + LOGICA -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+// Your web app's Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyAIuQfx7L8gEEeDt7RDxOfkKN1mNndiVuU",
+  authDomain: "brainstorming-universidad.firebaseapp.com",
+  projectId: "brainstorming-universidad",
+  storageBucket: "brainstorming-universidad.firebasestorage.app",
+  messagingSenderId: "707126023361",
+  appId: "1:707126023361:web:495e6271801f0e5e29b040"
+};
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const lista = document.getElementById("lista");
+  const total = document.getElementById("total");
+  const resultado = document.getElementById("resultado");
+
+  let ideasGlobales = [];
+
+  async function enviarIdea() {
+    const texto = document.getElementById("idea").value.trim();
+    if (texto !== "") {
+      await addDoc(collection(db, "ideas"), { texto });
+      document.getElementById("idea").value = "";
+    }
+  }
+
+  window.enviarIdea = enviarIdea;
+
+  onSnapshot(collection(db, "ideas"), (snapshot) => {
+    lista.innerHTML = "";
+    ideasGlobales = [];
+
+    snapshot.forEach((doc) => {
+      ideasGlobales.push(doc.data().texto);
+      const li = document.createElement("li");
+      li.textContent = doc.data().texto;
+      lista.appendChild(li);
+    });
+
+    total.textContent = ideasGlobales.length;
+  });
+
+  const palabrasIgnoradas = [
+    "el","la","los","las","es","un","una","de","y","para",
+    "que","en","con","como","se","del","al","por","una",
+    "son","más","muy","lo","las"
+  ];
+
+  function generarConclusion(ideas) {
+    let contador = {};
+
+    ideas.forEach(texto => {
+      texto
+        .toLowerCase()
+        .replace(/[^\w\s]/g, "")
+        .split(" ")
+        .forEach(palabra => {
+          if (!palabrasIgnoradas.includes(palabra) && palabra.length > 3) {
+            contador[palabra] = (contador[palabra] || 0) + 1;
+          }
+        });
+    });
+
+    const palabrasClave = Object.entries(contador)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(p => p[0]);
+
+    if (palabrasClave.length === 0) {
+      return "Aún no hay suficientes ideas para generar una conclusión.";
+    }
+
+    return `A partir del análisis de las respuestas, el grupo define el brainstorming como una técnica colaborativa que promueve ${palabrasClave.join(", ")}, permitiendo la construcción colectiva de ideas sin juicios previos.`;
+  }
+
+  window.mostrarConclusion = function () {
+    resultado.textContent = generarConclusion(ideasGlobales);
+  };
+</script>
+
+</body>
+</html>
