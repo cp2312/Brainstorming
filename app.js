@@ -127,10 +127,10 @@ function encontrarPosicion() {
   let x, y;
 
   do {
-    x = 5 + Math.random() * 75; // 5% - 80%
-    y = 5 + Math.random() * 80; // 5% - 85%
+    x = 3 + Math.random() * 80;  // full width
+    y = 3 + Math.random() * 88;  // full height
     intentos++;
-  } while (hayColision(x, y) && intentos < 20);
+  } while (hayColision(x, y) && intentos < 25);
 
   posicionesOcupadas.push({ x, y });
   return { x, y };

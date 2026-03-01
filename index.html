@@ -5,76 +5,57 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lluvia de Ideas ☁️</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-  <!-- Fondo animado con burbujas decorativas -->
+  <!-- Orbes decorativos -->
   <div class="bg-orbs">
     <div class="orb orb1"></div>
     <div class="orb orb2"></div>
     <div class="orb orb3"></div>
-    <div class="orb orb4"></div>
   </div>
 
-  <!-- Cielo de nubes -->
+  <!-- Nubes de ideas flotando por todo el cielo -->
   <div class="sky" id="sky"></div>
 
-  <!-- Panel principal -->
-  <div class="panel">
+  <!-- UI flotante sin caja -->
+  <div class="ui">
 
-    <!-- Pastilla móvil -->
-    <div class="drag-pill"></div>
-
-    <!-- Ilustración persona pensando -->
+    <!-- Personaje pensando -->
     <div class="thinker-wrap">
       <svg class="thinker-svg" viewBox="0 0 220 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <!-- Cuerpo -->
-        <ellipse cx="110" cy="185" rx="45" ry="12" fill="rgba(108,99,255,0.12)"/>
-        <!-- Piernas -->
+        <ellipse cx="110" cy="185" rx="45" ry="12" fill="rgba(108,99,255,0.10)"/>
         <path d="M100 160 Q97 172 92 180" stroke="#a78bfa" stroke-width="5" stroke-linecap="round"/>
         <path d="M120 160 Q122 172 118 180" stroke="#a78bfa" stroke-width="5" stroke-linecap="round"/>
-        <!-- Torso -->
         <rect x="90" y="120" width="40" height="42" rx="14" fill="#c4b5fd"/>
-        <!-- Brazo izquierdo (apoyado en rodilla) -->
         <path d="M90 130 Q75 148 78 158" stroke="#a78bfa" stroke-width="5.5" stroke-linecap="round"/>
-        <!-- Brazo derecho relajado -->
         <path d="M130 130 Q145 140 140 152" stroke="#a78bfa" stroke-width="5.5" stroke-linecap="round"/>
-        <!-- Mano apoyando cabeza -->
         <circle cx="78" cy="160" r="6" fill="#a78bfa"/>
-        <!-- Cuello -->
         <rect x="104" y="108" width="12" height="16" rx="5" fill="#c4b5fd"/>
-        <!-- Cabeza -->
         <circle cx="110" cy="94" r="28" fill="#ede9fe"/>
         <circle cx="110" cy="94" r="28" fill="url(#headGrad)"/>
-        <!-- Cara -->
-        <!-- Ojos pensativos -->
         <path d="M100 90 Q103 87 106 90" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" fill="none"/>
         <path d="M114 90 Q117 87 120 90" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" fill="none"/>
-        <!-- Boca sonriente pensativa -->
         <path d="M104 100 Q110 105 116 100" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" fill="none"/>
-        <!-- Ceja pensativa levantada -->
         <path d="M99 84 Q103 81 107 83" stroke="#7c3aed" stroke-width="1.5" stroke-linecap="round" fill="none"/>
         <path d="M113 83 Q117 80 121 82" stroke="#7c3aed" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-        <!-- Puntos de pensamiento flotando -->
-        <circle cx="148" cy="72" r="4" fill="#c4b5fd" opacity="0.7">
-          <animate attributeName="cy" values="72;66;72" dur="2s" repeatCount="indefinite"/>
-          <animate attributeName="opacity" values="0.7;1;0.7" dur="2s" repeatCount="indefinite"/>
+        <circle cx="148" cy="72" r="4" fill="#c4b5fd" opacity="0.8">
+          <animate attributeName="cy" values="72;64;72" dur="2s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0.8;1;0.8" dur="2s" repeatCount="indefinite"/>
         </circle>
-        <circle cx="160" cy="58" r="6" fill="#a78bfa" opacity="0.6">
-          <animate attributeName="cy" values="58;50;58" dur="2.4s" repeatCount="indefinite"/>
-          <animate attributeName="opacity" values="0.6;1;0.6" dur="2.4s" repeatCount="indefinite"/>
+        <circle cx="162" cy="56" r="6.5" fill="#a78bfa" opacity="0.65">
+          <animate attributeName="cy" values="56;46;56" dur="2.4s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0.65;1;0.65" dur="2.4s" repeatCount="indefinite"/>
         </circle>
-        <circle cx="176" cy="40" r="9" fill="#7c3aed" opacity="0.4">
-          <animate attributeName="cy" values="40;30;40" dur="2.8s" repeatCount="indefinite"/>
-          <animate attributeName="opacity" values="0.4;0.8;0.4" dur="2.8s" repeatCount="indefinite"/>
+        <circle cx="180" cy="36" r="10" fill="#7c3aed" opacity="0.45">
+          <animate attributeName="cy" values="36;24;36" dur="2.9s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0.45;0.85;0.45" dur="2.9s" repeatCount="indefinite"/>
         </circle>
-        <!-- Cabello -->
         <path d="M83 90 Q82 70 95 62 Q110 54 125 62 Q138 70 137 88" fill="#7c3aed" opacity="0.85"/>
         <path d="M83 90 Q80 80 84 74" stroke="#7c3aed" stroke-width="3" stroke-linecap="round" fill="none"/>
-        <!-- Detalles ropa -->
-        <path d="M95 125 L110 135 L125 125" stroke="white" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.5"/>
+        <path d="M95 125 L110 135 L125 125" stroke="white" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.4"/>
         <defs>
           <radialGradient id="headGrad" cx="40%" cy="35%" r="60%">
             <stop offset="0%" stop-color="rgba(255,255,255,0.4)"/>
@@ -84,25 +65,25 @@
       </svg>
     </div>
 
-    <!-- Header -->
-    <div class="panel-header">
+    <!-- Título -->
+    <div class="header">
       <h1>Lluvia de Ideas</h1>
       <p class="subtitle">¿Qué crees que es el <strong>brainstorming</strong>?</p>
     </div>
 
-    <!-- Input -->
+    <!-- Input flotante -->
     <div class="input-area">
       <input type="text" id="idea" placeholder="Escribe tu idea y lánzala al cielo..." maxlength="120" autocomplete="off">
       <button id="btn-enviar" onclick="enviarIdea()">
         <span class="btn-label">Lanzar</span>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
       </button>
     </div>
 
-    <!-- Stats -->
-    <div class="stats-bar">
+    <!-- Stats pill -->
+    <div class="stats-pill">
       <span>☁️ <strong id="total">0</strong> ideas en el cielo</span>
-      <span id="live-dot" class="live-dot">● En vivo</span>
+      <span class="live-dot">● En vivo</span>
     </div>
 
     <!-- Botón análisis -->
@@ -112,7 +93,7 @@
 
     <!-- Resultado -->
     <div class="resultado-wrap" id="resultado-wrap">
-      <div class="resultado" id="resultado">
+      <div class="resultado">
         <div class="resultado-title">💡 Análisis del grupo</div>
         <div id="resultado-texto"></div>
       </div>
