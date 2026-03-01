@@ -88,7 +88,9 @@ function crearNube(texto, esNueva = false) {
   nube.innerHTML = `
     <div class="bump-left"></div>
     <div class="bump-right"></div>
-    <span class="nube-texto">${escapeHTML(texto)}</span>
+    <div class="nube-body">
+      <span class="nube-texto">${escapeHTML(texto)}</span>
+    </div>
   `;
 
   // Posición aleatoria sin solapamiento
