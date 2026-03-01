@@ -153,11 +153,14 @@ body {
 .thinker-wrap {
   margin-bottom: -4px;
 }
-.thinker-svg {
-  width: 130px;
+.thinker-img {
+  width: 200px;
   height: auto;
-  filter: drop-shadow(0 10px 24px rgba(124,58,237,0.22));
+  /* multiply elimina el negro sin afectar los colores del personaje */
+  mix-blend-mode: multiply;
+  filter: drop-shadow(0 12px 28px rgba(124,58,237,0.25));
   animation: tFloat 4s ease-in-out infinite;
+  display: block;
 }
 @keyframes tFloat {
   0%,100% { transform:translateY(0); }
@@ -363,7 +366,7 @@ input::placeholder { color: rgba(76,74,110,0.5); }
     padding-bottom: 30px;
   }
 
-  .thinker-svg { width: 100px; }
+  .thinker-img { width: 150px; }
   h1 { font-size: 1.9rem; }
   .subtitle { font-size: 0.88rem; }
   .header { margin-bottom: 18px; }
