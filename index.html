@@ -10,19 +10,87 @@
 </head>
 <body>
 
-  <div class="sky" id="sky">
-    <!-- Las nubes de ideas se generan aquí dinámicamente -->
+  <!-- Fondo animado con burbujas decorativas -->
+  <div class="bg-orbs">
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+    <div class="orb orb3"></div>
+    <div class="orb orb4"></div>
   </div>
 
-  <div class="panel">
-    <div class="drag-pill" style="display:none; width:40px; height:4px; background:rgba(108,99,255,0.25); border-radius:99px; margin:0 auto 16px;"></div>
+  <!-- Cielo de nubes -->
+  <div class="sky" id="sky"></div>
 
+  <!-- Panel principal -->
+  <div class="panel">
+
+    <!-- Pastilla móvil -->
+    <div class="drag-pill"></div>
+
+    <!-- Ilustración persona pensando -->
+    <div class="thinker-wrap">
+      <svg class="thinker-svg" viewBox="0 0 220 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Cuerpo -->
+        <ellipse cx="110" cy="185" rx="45" ry="12" fill="rgba(108,99,255,0.12)"/>
+        <!-- Piernas -->
+        <path d="M100 160 Q97 172 92 180" stroke="#a78bfa" stroke-width="5" stroke-linecap="round"/>
+        <path d="M120 160 Q122 172 118 180" stroke="#a78bfa" stroke-width="5" stroke-linecap="round"/>
+        <!-- Torso -->
+        <rect x="90" y="120" width="40" height="42" rx="14" fill="#c4b5fd"/>
+        <!-- Brazo izquierdo (apoyado en rodilla) -->
+        <path d="M90 130 Q75 148 78 158" stroke="#a78bfa" stroke-width="5.5" stroke-linecap="round"/>
+        <!-- Brazo derecho relajado -->
+        <path d="M130 130 Q145 140 140 152" stroke="#a78bfa" stroke-width="5.5" stroke-linecap="round"/>
+        <!-- Mano apoyando cabeza -->
+        <circle cx="78" cy="160" r="6" fill="#a78bfa"/>
+        <!-- Cuello -->
+        <rect x="104" y="108" width="12" height="16" rx="5" fill="#c4b5fd"/>
+        <!-- Cabeza -->
+        <circle cx="110" cy="94" r="28" fill="#ede9fe"/>
+        <circle cx="110" cy="94" r="28" fill="url(#headGrad)"/>
+        <!-- Cara -->
+        <!-- Ojos pensativos -->
+        <path d="M100 90 Q103 87 106 90" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" fill="none"/>
+        <path d="M114 90 Q117 87 120 90" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" fill="none"/>
+        <!-- Boca sonriente pensativa -->
+        <path d="M104 100 Q110 105 116 100" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" fill="none"/>
+        <!-- Ceja pensativa levantada -->
+        <path d="M99 84 Q103 81 107 83" stroke="#7c3aed" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+        <path d="M113 83 Q117 80 121 82" stroke="#7c3aed" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+        <!-- Puntos de pensamiento flotando -->
+        <circle cx="148" cy="72" r="4" fill="#c4b5fd" opacity="0.7">
+          <animate attributeName="cy" values="72;66;72" dur="2s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0.7;1;0.7" dur="2s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="160" cy="58" r="6" fill="#a78bfa" opacity="0.6">
+          <animate attributeName="cy" values="58;50;58" dur="2.4s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0.6;1;0.6" dur="2.4s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="176" cy="40" r="9" fill="#7c3aed" opacity="0.4">
+          <animate attributeName="cy" values="40;30;40" dur="2.8s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0.4;0.8;0.4" dur="2.8s" repeatCount="indefinite"/>
+        </circle>
+        <!-- Cabello -->
+        <path d="M83 90 Q82 70 95 62 Q110 54 125 62 Q138 70 137 88" fill="#7c3aed" opacity="0.85"/>
+        <path d="M83 90 Q80 80 84 74" stroke="#7c3aed" stroke-width="3" stroke-linecap="round" fill="none"/>
+        <!-- Detalles ropa -->
+        <path d="M95 125 L110 135 L125 125" stroke="white" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.5"/>
+        <defs>
+          <radialGradient id="headGrad" cx="40%" cy="35%" r="60%">
+            <stop offset="0%" stop-color="rgba(255,255,255,0.4)"/>
+            <stop offset="100%" stop-color="rgba(196,181,253,0)"/>
+          </radialGradient>
+        </defs>
+      </svg>
+    </div>
+
+    <!-- Header -->
     <div class="panel-header">
-      <div class="icon-wrap">☁️</div>
       <h1>Lluvia de Ideas</h1>
       <p class="subtitle">¿Qué crees que es el <strong>brainstorming</strong>?</p>
     </div>
 
+    <!-- Input -->
     <div class="input-area">
       <input type="text" id="idea" placeholder="Escribe tu idea y lánzala al cielo..." maxlength="120" autocomplete="off">
       <button id="btn-enviar" onclick="enviarIdea()">
@@ -31,15 +99,18 @@
       </button>
     </div>
 
+    <!-- Stats -->
     <div class="stats-bar">
       <span>☁️ <strong id="total">0</strong> ideas en el cielo</span>
       <span id="live-dot" class="live-dot">● En vivo</span>
     </div>
 
+    <!-- Botón análisis -->
     <button class="btn-analisis" id="btn-analisis" onclick="generarAnalisis()">
       ✨ Analizar todas las ideas
     </button>
 
+    <!-- Resultado -->
     <div class="resultado-wrap" id="resultado-wrap">
       <div class="resultado" id="resultado">
         <div class="resultado-title">💡 Análisis del grupo</div>
@@ -49,8 +120,6 @@
 
   </div>
 
-  <!-- Firebase + Lógica -->
   <script type="module" src="app.js"></script>
-
 </body>
 </html>
