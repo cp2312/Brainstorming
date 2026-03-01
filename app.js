@@ -81,8 +81,15 @@ onSnapshot(collection(db, "ideas"), (snapshot) => {
 // ---- CREAR NUBE EN EL CIELO ----
 function crearNube(texto, esNueva = false) {
   const nube = document.createElement("div");
-  nube.className = `nube ${esNueva ? 'nueva' : ''} ${CLOUD_COLORS[Math.floor(Math.random() * CLOUD_COLORS.length)]}`;
-  nube.textContent = texto;
+  const colorClass = CLOUD_COLORS[Math.floor(Math.random() * CLOUD_COLORS.length)];
+  nube.className = `nube ${esNueva ? 'nueva' : ''} ${colorClass}`;
+
+  // Estructura interna: bultos decorativos + texto encima
+  nube.innerHTML = `
+    <div class="bump-left"></div>
+    <div class="bump-right"></div>
+    <span class="nube-texto">${escapeHTML(texto)}</span>
+  `;
 
   // Posición aleatoria sin solapamiento
   const pos = encontrarPosicion();
@@ -90,7 +97,7 @@ function crearNube(texto, esNueva = false) {
   nube.style.top = pos.y + "%";
 
   // Animación flotante con duración aleatoria
-  const duracion = 6 + Math.random() * 6; // entre 6 y 12 segundos
+  const duracion = 6 + Math.random() * 6;
   const delay = Math.random() * -8;
   nube.style.animationDuration = duracion + "s";
   nube.style.animationDelay = delay + "s";
@@ -103,6 +110,14 @@ function crearNube(texto, esNueva = false) {
     nubes[0].remove();
     posicionesOcupadas.shift();
   }
+}
+
+function escapeHTML(str) {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
 function encontrarPosicion() {

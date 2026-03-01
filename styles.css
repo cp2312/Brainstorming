@@ -57,51 +57,77 @@ body {
 /* ---- NUBES DE IDEAS ---- */
 .nube {
   position: absolute;
-  background: var(--cloud-bg);
-  border-radius: 60px 60px 50px 50px;
-  padding: 14px 22px;
-  max-width: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 140px;
+  max-width: 200px;
   text-align: center;
-  font-family: 'Nunito', sans-serif;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text-dark);
-  box-shadow:
-    0 6px 20px var(--cloud-shadow),
-    inset 0 -3px 0 rgba(150, 180, 220, 0.2);
-  animation: floatCloud linear infinite;
-  opacity: 0;
   cursor: default;
   word-break: break-word;
-  line-height: 1.4;
-  transition: transform 0.2s, box-shadow 0.2s;
+  animation: floatCloud linear infinite;
+  opacity: 0;
+  transition: transform 0.2s, filter 0.2s;
+  /* El texto va encima de todo */
+  isolation: isolate;
 }
 
-/* Bultos de la nube */
-.nube::before,
-.nube::after {
+/* Texto de la nube — siempre encima */
+.nube span.nube-texto {
+  position: relative;
+  z-index: 2;
+  font-family: 'Nunito', sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  color: #2a2a4a;
+  line-height: 1.4;
+  padding: 10px 18px;
+  text-shadow: 0 1px 2px rgba(255,255,255,0.6);
+  pointer-events: none;
+}
+
+/* Cuerpo de la nube (SVG inline como background) */
+.nube::before {
   content: '';
   position: absolute;
-  background: var(--cloud-bg);
+  inset: 0;
+  z-index: 1;
+  border-radius: 60px;
+  background: inherit;
+  box-shadow:
+    0 6px 20px var(--cloud-shadow),
+    inset 0 -3px 0 rgba(150, 180, 220, 0.18);
+}
+
+/* Bulto izquierdo */
+.nube .bump-left {
+  position: absolute;
+  z-index: 0;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
-  box-shadow: 0 4px 12px var(--cloud-shadow);
+  background: inherit;
+  top: -20px;
+  left: 18px;
+  box-shadow: 0 -2px 8px var(--cloud-shadow);
 }
-.nube::before {
-  width: 55px;
-  height: 55px;
-  top: -22px;
-  left: 20px;
-}
-.nube::after {
-  width: 40px;
-  height: 40px;
-  top: -15px;
-  right: 25px;
+
+/* Bulto derecho */
+.nube .bump-right {
+  position: absolute;
+  z-index: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: inherit;
+  top: -14px;
+  right: 22px;
+  box-shadow: 0 -2px 6px var(--cloud-shadow);
 }
 
 .nube:hover {
-  transform: scale(1.06) translateY(-4px);
-  box-shadow: 0 12px 30px rgba(108, 99, 255, 0.2), inset 0 -3px 0 rgba(150, 180, 220, 0.2);
+  transform: scale(1.07) translateY(-5px);
+  filter: brightness(1.04) drop-shadow(0 8px 16px rgba(108,99,255,0.25));
 }
 
 .nube.nueva {
@@ -424,4 +450,160 @@ input::placeholder {
   #btn-enviar {
     justify-content: center;
   }
+}
+
+/* ============================================
+   MOBILE — diseño tipo bottom-sheet
+   ============================================ */
+@media (max-width: 600px) {
+
+  body {
+    align-items: flex-end;
+    justify-content: center;
+    padding: 0;
+    overflow: hidden;
+    height: 100dvh;
+  }
+
+  .sky {
+    height: 52dvh;
+  }
+
+  .panel {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 28px 28px 0 0;
+    padding: 8px 20px 0 20px;
+    max-height: 78dvh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: calc(16px + env(safe-area-inset-bottom));
+    box-shadow:
+      0 -8px 40px rgba(108, 99, 255, 0.18),
+      0 -2px 8px rgba(0,0,0,0.06),
+      inset 0 1px 0 rgba(255,255,255,0.8);
+    animation: slideUp 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(60px); opacity: 0; }
+    to   { transform: translateY(0); opacity: 1; }
+  }
+
+  /* Pastilla visual de arrastre */
+  .drag-pill {
+    display: block !important;
+  }
+
+  .panel-header {
+    margin-bottom: 14px;
+  }
+
+  .icon-wrap {
+    font-size: 1.8rem;
+    margin-bottom: 2px;
+  }
+
+  h1 {
+    font-size: 1.45rem;
+  }
+
+  .subtitle {
+    font-size: 0.86rem;
+  }
+
+  /* Input y botón en la misma fila */
+  .input-area {
+    flex-direction: row;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  input {
+    font-size: 16px;
+    padding: 13px 14px;
+    border-radius: 14px;
+  }
+
+  #btn-enviar {
+    padding: 13px 16px;
+    border-radius: 14px;
+    font-size: 14px;
+    gap: 0;
+    flex-shrink: 0;
+  }
+
+  /* Solo icono en el botón, sin texto */
+  #btn-enviar .btn-label {
+    display: none;
+  }
+
+  #btn-enviar svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .stats-bar {
+    padding: 8px 12px;
+    font-size: 13px;
+    margin-bottom: 12px;
+    border-radius: 10px;
+  }
+
+  .btn-analisis {
+    padding: 14px;
+    font-size: 15px;
+    border-radius: 16px;
+    margin-bottom: 14px;
+  }
+
+  .resultado {
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  #resultado-texto {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .nube {
+    min-width: 90px;
+    max-width: 140px;
+  }
+
+  .nube span.nube-texto {
+    font-size: 11px;
+    padding: 7px 12px;
+  }
+
+  .nube .bump-left {
+    width: 36px;
+    height: 36px;
+    top: -14px;
+    left: 10px;
+  }
+
+  .nube .bump-right {
+    width: 26px;
+    height: 26px;
+    top: -10px;
+    right: 12px;
+  }
+}
+
+/* Tablets pequeñas */
+@media (min-width: 601px) and (max-width: 768px) {
+  .panel {
+    max-width: 480px;
+    padding: 28px 26px;
+  }
+
+  h1 { font-size: 1.75rem; }
+}
+
+/* Prevenir zoom automático en iOS Safari */
+@supports (-webkit-touch-callout: none) {
+  input { font-size: max(16px, 1em); }
 }
