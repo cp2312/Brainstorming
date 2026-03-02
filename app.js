@@ -4,7 +4,7 @@
 // =============================================
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, onSnapshot, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 // ---- FIREBASE CONFIG ----
 const firebaseConfig = {
@@ -145,7 +145,7 @@ function hayColision(x, y) {
 }
 
 // ---- ANÁLISIS CON CLAUDE API ----
-window.generarAnalisis = async function () {
+async function _ejecutarAnalisis() {
   if (ideasGlobales.length === 0) {
     alert("¡Aún no hay ideas! Pide al grupo que participe primero.");
     return;
@@ -300,3 +300,115 @@ function generarAnalisisLocal(ideas) {
 
 **Reflexión final:** El grupo muestra un buen nivel de comprensión conceptual. ¡Es un excelente punto de partida para profundizar en la técnica! 🎉`;
 }
+
+// ---- REINICIAR LLUVIA DE IDEAS ----
+async function _ejecutarReinicio() {
+  const btnReiniciar = document.getElementById("btn-reiniciar");
+  btnReiniciar.disabled = true;
+  btnReiniciar.textContent = "⏳ Borrando...";
+
+  try {
+    // Borrar todos los documentos de Firebase
+    const snapshot = await getDocs(collection(db, "ideas"));
+    const deletes = snapshot.docs.map(d => deleteDoc(doc(db, "ideas", d.id)));
+    await Promise.all(deletes);
+
+    // Limpiar nubes del cielo
+    sky.innerHTML = "";
+    posicionesOcupadas.length = 0;
+    idsYaMostrados.clear();
+
+    // Ocultar resultado si estaba visible
+    document.getElementById("resultado-wrap").classList.remove("visible");
+    document.getElementById("resultado-texto").innerHTML = "";
+
+  } catch (e) {
+    console.error("Error al reiniciar:", e);
+    alert("Hubo un error al reiniciar. Intenta de nuevo.");
+  } finally {
+    btnReiniciar.disabled = false;
+    btnReiniciar.innerHTML = "🗑️ Reiniciar lluvia de ideas";
+  }
+};
+
+// ---- SISTEMA DE CONTRASEÑA ----
+const CLAVE_SECRETA = "4321";
+let accionPendiente = null; // 'analisis' o 'reinicio'
+
+// Interceptar botones con clave
+window.generarAnalisis = function () {
+  pedirClave('analisis');
+};
+
+window.reiniciarIdeas = function () {
+  pedirClave('reinicio');
+};
+
+function pedirClave(accion) {
+  accionPendiente = accion;
+  const overlay = document.getElementById("modal-overlay");
+  const icon    = document.getElementById("modal-icon");
+  const title   = document.getElementById("modal-title");
+  const sub     = document.getElementById("modal-subtitle");
+  const input   = document.getElementById("modal-input");
+  const error   = document.getElementById("modal-error");
+
+  if (accion === 'analisis') {
+    icon.textContent  = "✨";
+    title.textContent = "Analizar ideas";
+    sub.textContent   = "Ingresa la clave para generar el análisis";
+  } else {
+    icon.textContent  = "🗑️";
+    title.textContent = "Reiniciar lluvia";
+    sub.textContent   = "Ingresa la clave para borrar todas las ideas";
+  }
+
+  input.value = "";
+  error.classList.remove("visible");
+  overlay.classList.add("visible");
+  setTimeout(() => input.focus(), 100);
+}
+
+window.cerrarModal = function () {
+  document.getElementById("modal-overlay").classList.remove("visible");
+  document.getElementById("modal-error").classList.remove("visible");
+  accionPendiente = null;
+};
+
+window.confirmarModal = function () {
+  const input = document.getElementById("modal-input");
+  const error = document.getElementById("modal-error");
+
+  if (input.value !== CLAVE_SECRETA) {
+    error.classList.add("visible");
+    input.value = "";
+    input.focus();
+    // Quitar error tras 2s
+    setTimeout(() => error.classList.remove("visible"), 2000);
+    return;
+  }
+
+  cerrarModal();
+
+  if (accionPendiente === 'analisis') {
+    _ejecutarAnalisis();
+  } else if (accionPendiente === 'reinicio') {
+    _ejecutarReinicio();
+  }
+};
+
+// Enter en el input del modal
+document.addEventListener("DOMContentLoaded", () => {
+  const input = document.getElementById("modal-input");
+  if (input) {
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") window.confirmarModal();
+      if (e.key === "Escape") window.cerrarModal();
+    });
+  }
+});
+
+// Clic fuera del modal para cerrar
+document.getElementById("modal-overlay")?.addEventListener("click", (e) => {
+  if (e.target.id === "modal-overlay") window.cerrarModal();
+});

@@ -400,3 +400,139 @@ input::placeholder { color: rgba(76,74,110,0.5); }
 @supports (-webkit-touch-callout: none) {
   input { font-size: max(16px, 1em); }
 }
+
+/* ---- MODAL CONTRASEÑA ---- */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(30, 27, 75, 0.35);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  align-items: center;
+  justify-content: center;
+  animation: overlayIn .2s ease both;
+}
+.modal-overlay.visible {
+  display: flex;
+}
+@keyframes overlayIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.modal {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(32px) saturate(2);
+  -webkit-backdrop-filter: blur(32px) saturate(2);
+  border: 1.5px solid rgba(255,255,255,0.8);
+  border-radius: 28px;
+  padding: 34px 30px 28px;
+  width: 90%;
+  max-width: 340px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(124,58,237,0.18), inset 0 1px 0 rgba(255,255,255,0.9);
+  animation: modalPop .3s cubic-bezier(.175,.885,.32,1.275) both;
+}
+@keyframes modalPop {
+  from { transform: scale(0.85) translateY(20px); opacity: 0; }
+  to   { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.modal-icon {
+  font-size: 2.4rem;
+  margin-bottom: 8px;
+  animation: modalIconBounce 1s ease infinite alternate;
+}
+@keyframes modalIconBounce {
+  from { transform: translateY(0) rotate(-5deg); }
+  to   { transform: translateY(-4px) rotate(5deg); }
+}
+
+.modal-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--text-dark);
+  margin-bottom: 6px;
+}
+
+.modal-subtitle {
+  font-size: 0.88rem;
+  color: var(--text-mid);
+  margin-bottom: 18px;
+}
+
+.modal-input {
+  width: 100%;
+  padding: 13px 18px;
+  border-radius: 14px;
+  border: 1.5px solid rgba(124,58,237,0.25);
+  background: rgba(255,255,255,0.7);
+  font-family: 'Nunito', sans-serif;
+  font-size: 20px;
+  letter-spacing: 6px;
+  text-align: center;
+  color: var(--text-dark);
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+  margin-bottom: 8px;
+}
+.modal-input:focus {
+  border-color: var(--accent-soft);
+  box-shadow: 0 0 0 4px rgba(124,58,237,0.1);
+}
+
+.modal-error {
+  display: none;
+  color: #dc2626;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  animation: shake .3s ease;
+}
+.modal-error.visible { display: block; }
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  25%      { transform: translateX(-6px); }
+  75%      { transform: translateX(6px); }
+}
+
+.modal-btns {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.modal-btn-cancel {
+  flex: 1;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1.5px solid rgba(124,58,237,0.2);
+  background: rgba(255,255,255,0.5);
+  font-family: 'Nunito', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-mid);
+  cursor: pointer;
+  transition: background .2s;
+}
+.modal-btn-cancel:hover { background: rgba(255,255,255,0.8); }
+
+.modal-btn-ok {
+  flex: 1;
+  padding: 12px;
+  border-radius: 14px;
+  border: none;
+  background: var(--btn-grad);
+  font-family: 'Syne', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(124,58,237,0.35);
+  transition: transform .15s, box-shadow .2s;
+}
+.modal-btn-ok:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(124,58,237,0.45); }
+.modal-btn-ok:active { transform: scale(0.97); }

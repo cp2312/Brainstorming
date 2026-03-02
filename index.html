@@ -25,7 +25,7 @@
 
     <!-- Personaje pensando -->
     <div class="thinker-wrap">
-      <img class="thinker-img" src="imagen1.png" alt="Persona pensando">
+      <img class="thinker-img" src="personaje.png" alt="Persona pensando">
     </div>
 
     <!-- Título -->
@@ -54,6 +54,11 @@
       ✨ Analizar todas las ideas
     </button>
 
+    <!-- Botón reiniciar -->
+    <button class="btn-reiniciar" id="btn-reiniciar" onclick="reiniciarIdeas()">
+      🗑️ Reiniciar lluvia de ideas
+    </button>
+
     <!-- Resultado -->
     <div class="resultado-wrap" id="resultado-wrap">
       <div class="resultado">
@@ -62,6 +67,22 @@
       </div>
     </div>
 
+  </div>
+
+
+  <!-- Modal de contraseña -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+      <div class="modal-icon" id="modal-icon">🔐</div>
+      <h3 class="modal-title" id="modal-title">Acceso restringido</h3>
+      <p class="modal-subtitle" id="modal-subtitle">Ingresa la clave para continuar</p>
+      <input type="password" class="modal-input" id="modal-input" placeholder="••••" maxlength="10" autocomplete="off">
+      <div class="modal-error" id="modal-error">Clave incorrecta, intenta de nuevo</div>
+      <div class="modal-btns">
+        <button class="modal-btn-cancel" onclick="cerrarModal()">Cancelar</button>
+        <button class="modal-btn-ok" onclick="confirmarModal()">Confirmar</button>
+      </div>
+    </div>
   </div>
 
   <script type="module" src="app.js"></script>
