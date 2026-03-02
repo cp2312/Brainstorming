@@ -10,65 +10,45 @@
 </head>
 <body>
 
-  <!-- Orbes decorativos -->
+  <!-- Orbes decorativos de fondo -->
   <div class="bg-orbs">
     <div class="orb orb1"></div>
     <div class="orb orb2"></div>
     <div class="orb orb3"></div>
   </div>
 
-  <!-- Nubes de ideas flotando por todo el cielo -->
+  <!-- Cielo: nubes flotan aquí por toda la pantalla -->
   <div class="sky" id="sky"></div>
 
-  <!-- UI flotante sin caja -->
-  <div class="ui">
-
-    <!-- Personaje pensando -->
+  <!-- PANEL IZQUIERDO: título + personaje + input -->
+  <div class="panel-left">
     <div class="thinker-wrap">
       <img class="thinker-img" src="personaje.png" alt="Persona pensando">
     </div>
-
-    <!-- Título -->
     <div class="header">
       <h1>Lluvia de Ideas</h1>
       <p class="subtitle">¿Qué crees que es el <strong>brainstorming</strong>?</p>
     </div>
-
-    <!-- Input flotante -->
     <div class="input-area">
-      <input type="text" id="idea" placeholder="Escribe tu idea y lánzala al cielo..." maxlength="120" autocomplete="off">
+      <input type="text" id="idea" placeholder="Escribe tu idea..." maxlength="120" autocomplete="off">
       <button id="btn-enviar" onclick="enviarIdea()">
-        <span class="btn-label">Lanzar</span>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
       </button>
     </div>
-
-    <!-- Stats pill -->
     <div class="stats-pill">
-      <span>☁️ <strong id="total">0</strong> ideas en el cielo</span>
-      <span class="live-dot">● En vivo</span>
+      ☁️ <strong id="total">0</strong> ideas &nbsp;·&nbsp; <span class="live-dot">● En vivo</span>
     </div>
-
-    <!-- Botón análisis -->
-    <button class="btn-analisis" id="btn-analisis" onclick="generarAnalisis()">
-      ✨ Analizar todas las ideas
-    </button>
-
-    <!-- Botón reiniciar -->
-    <button class="btn-reiniciar" id="btn-reiniciar" onclick="reiniciarIdeas()">
-      🗑️ Reiniciar lluvia de ideas
-    </button>
-
-    <!-- Resultado -->
-    <div class="resultado-wrap" id="resultado-wrap">
-      <div class="resultado">
-        <div class="resultado-title">💡 Análisis del grupo</div>
-        <div id="resultado-texto"></div>
-      </div>
-    </div>
-
   </div>
 
+  <!-- PANEL DERECHO: botones de control (solo para el profe) -->
+  <div class="panel-right">
+    <button class="btn-analisis" onclick="solicitarAccion('analisis')">
+      ✨ Analizar
+    </button>
+    <button class="btn-reiniciar" onclick="solicitarAccion('reinicio')">
+      🗑️ Reiniciar
+    </button>
+  </div>
 
   <!-- Modal de contraseña -->
   <div class="modal-overlay" id="modal-overlay">
@@ -77,12 +57,21 @@
       <h3 class="modal-title" id="modal-title">Acceso restringido</h3>
       <p class="modal-subtitle" id="modal-subtitle">Ingresa la clave para continuar</p>
       <input type="password" class="modal-input" id="modal-input" placeholder="••••" maxlength="10" autocomplete="off">
-      <div class="modal-error" id="modal-error">Clave incorrecta, intenta de nuevo</div>
+      <div class="modal-error" id="modal-error">Clave incorrecta ❌</div>
       <div class="modal-btns">
         <button class="modal-btn-cancel" onclick="cerrarModal()">Cancelar</button>
         <button class="modal-btn-ok" onclick="confirmarModal()">Confirmar</button>
       </div>
     </div>
+  </div>
+
+  <!-- Panel de resultado del análisis -->
+  <div class="resultado-wrap" id="resultado-wrap">
+    <div class="resultado-header">
+      <span>💡 Análisis del grupo</span>
+      <button class="resultado-close" onclick="cerrarResultado()">✕</button>
+    </div>
+    <div id="resultado-texto"></div>
   </div>
 
   <script type="module" src="app.js"></script>
