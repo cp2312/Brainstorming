@@ -10,68 +10,56 @@
 </head>
 <body>
 
-  <!-- Orbes decorativos de fondo -->
-  <div class="bg-orbs">
-    <div class="orb orb1"></div>
-    <div class="orb orb2"></div>
-    <div class="orb orb3"></div>
-  </div>
-
-  <!-- Cielo: nubes flotan aquí por toda la pantalla -->
+  <!-- Nubes flotan aquí -->
   <div class="sky" id="sky"></div>
 
-  <!-- PANEL IZQUIERDO: título + personaje + input -->
-  <div class="panel-left">
-    <div class="thinker-wrap">
-      <img class="thinker-img" src="personaje.png" alt="Persona pensando">
-    </div>
-    <div class="header">
-      <h1>Lluvia de Ideas</h1>
-      <p class="subtitle">¿Qué crees que es el <strong>brainstorming</strong>?</p>
-    </div>
-    <div class="input-area">
+  <!-- PANTALLA DE ENTRADA (se oculta al enviar) -->
+  <div class="entrada" id="entrada">
+    <img class="personaje" src="personaje.png" alt="Pensando">
+    <h1>Lluvia de Ideas</h1>
+    <p class="subtitle">¿Qué crees que es el <strong>brainstorming</strong>?</p>
+    <div class="input-row">
       <input type="text" id="idea" placeholder="Escribe tu idea..." maxlength="120" autocomplete="off">
       <button id="btn-enviar" onclick="enviarIdea()">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
       </button>
     </div>
-    <div class="stats-pill">
+    <p class="hint">Presiona Enter o el botón para lanzar tu idea al cielo ☁️</p>
+  </div>
+
+  <!-- PANTALLA DE NUBES (visible tras enviar) -->
+  <div class="cielo-ui" id="cielo-ui">
+    <div class="stats-badge">
       ☁️ <strong id="total">0</strong> ideas &nbsp;·&nbsp; <span class="live-dot">● En vivo</span>
     </div>
-  </div>
-
-  <!-- PANEL DERECHO: botones de control (solo para el profe) -->
-  <div class="panel-right">
-    <button class="btn-analisis" onclick="solicitarAccion('analisis')">
-      ✨ Analizar
-    </button>
-    <button class="btn-reiniciar" onclick="solicitarAccion('reinicio')">
-      🗑️ Reiniciar
-    </button>
-  </div>
-
-  <!-- Modal de contraseña -->
-  <div class="modal-overlay" id="modal-overlay">
-    <div class="modal">
-      <div class="modal-icon" id="modal-icon">🔐</div>
-      <h3 class="modal-title" id="modal-title">Acceso restringido</h3>
-      <p class="modal-subtitle" id="modal-subtitle">Ingresa la clave para continuar</p>
-      <input type="password" class="modal-input" id="modal-input" placeholder="••••" maxlength="10" autocomplete="off">
-      <div class="modal-error" id="modal-error">Clave incorrecta ❌</div>
-      <div class="modal-btns">
-        <button class="modal-btn-cancel" onclick="cerrarModal()">Cancelar</button>
-        <button class="modal-btn-ok" onclick="confirmarModal()">Confirmar</button>
-      </div>
+    <div class="controles">
+      <button class="btn-ctrl btn-analizar" onclick="solicitarAccion('analisis')">✨ Analizar</button>
+      <button class="btn-ctrl btn-reiniciar" onclick="solicitarAccion('reinicio')">🗑️ Reiniciar</button>
     </div>
   </div>
 
-  <!-- Panel de resultado del análisis -->
+  <!-- Panel resultado -->
   <div class="resultado-wrap" id="resultado-wrap">
     <div class="resultado-header">
       <span>💡 Análisis del grupo</span>
-      <button class="resultado-close" onclick="cerrarResultado()">✕</button>
+      <button onclick="document.getElementById('resultado-wrap').classList.remove('visible')">✕</button>
     </div>
     <div id="resultado-texto"></div>
+  </div>
+
+  <!-- Modal clave -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+      <div id="modal-icon" style="font-size:2.2rem;margin-bottom:8px">🔐</div>
+      <h3 id="modal-title">Acceso restringido</h3>
+      <p id="modal-subtitle">Ingresa la clave para continuar</p>
+      <input type="password" id="modal-input" placeholder="••••" maxlength="10">
+      <div class="modal-error" id="modal-error">Clave incorrecta ❌</div>
+      <div class="modal-btns">
+        <button class="m-cancel" onclick="cerrarModal()">Cancelar</button>
+        <button class="m-ok" onclick="confirmarModal()">Entrar</button>
+      </div>
+    </div>
   </div>
 
   <script type="module" src="app.js"></script>
