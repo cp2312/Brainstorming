@@ -1,233 +1,352 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, addDoc, onSnapshot, getDocs, deleteDoc, doc }
-  from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  onSnapshot,
+  getDocs,
+  deleteDoc,
+  doc
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+/* =========================
+   FIREBASE CONFIG
+========================= */
 const firebaseConfig = {
-  apiKey: "AIzaSyAIuQfx7L8gEEeDt7RDxOfkKN1mNndiVuU",
-  authDomain: "brainstorming-universidad.firebaseapp.com",
-  projectId: "brainstorming-universidad",
-  storageBucket: "brainstorming-universidad.firebasestorage.app",
-  messagingSenderId: "707126023361",
-  appId: "1:707126023361:web:495e6271801f0e5e29b040"
+  apiKey: "TU_API_KEY",
+  authDomain: "TU_AUTH_DOMAIN",
+  projectId: "TU_PROJECT_ID",
+  storageBucket: "TU_STORAGE_BUCKET",
+  messagingSenderId: "TU_MESSAGING_SENDER_ID",
+  appId: "TU_APP_ID"
 };
-const db = getFirestore(initializeApp(firebaseConfig));
 
-// Estado
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+/* =========================
+   CONFIG GENERAL
+========================= */
+const CLAVE_ADMIN = "4321";
+const COLORES = ["c1", "c2", "c3", "c4", "c5", "c6"];
+const MAX_NUBES = 60;
+
 let ideasGlobales = [];
-const posiciones = [];
-const vistos = new Set();
-const COLORES = ['c1','c2','c3','c4','c5','c6'];
-const CLAVE = "4321";
 let accionPendiente = null;
+const vistos = new Set();
+const posiciones = [];
 
-// DOM
-const sky          = document.getElementById("sky");
-const entrada      = document.getElementById("entrada");
-const cieloUI      = document.getElementById("cielo-ui");
-const totalEl      = document.getElementById("total");
-const inputEl      = document.getElementById("idea");
-const resultadoWrap= document.getElementById("resultado-wrap");
-const resultadoTxt = document.getElementById("resultado-texto");
+/* =========================
+   DOM
+========================= */
+const sky = document.getElementById("sky");
+const entrada = document.getElementById("entrada");
+const cieloUI = document.getElementById("cielo-ui");
+const totalEl = document.getElementById("total");
+const inputIdea = document.getElementById("idea");
+const resultadoWrap = document.getElementById("resultado-wrap");
+const resultadoTexto = document.getElementById("resultado-texto");
+
 const modalOverlay = document.getElementById("modal-overlay");
-const modalInput   = document.getElementById("modal-input");
-const modalError   = document.getElementById("modal-error");
+const modalInput = document.getElementById("modal-input");
+const modalError = document.getElementById("modal-error");
 
-// ---- ENVIAR IDEA: oculta la entrada y muestra el cielo ----
-window.enviarIdea = async function() {
-  const texto = inputEl.value.trim();
-  if (!texto) return;
+const btnEnviar = document.getElementById("btn-enviar");
 
-  document.getElementById("btn-enviar").disabled = true;
+/* =========================
+   UTILIDADES
+========================= */
+function escapeHTML(texto) {
+  return texto
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
 
-  try {
-    await addDoc(collection(db, "ideas"), { texto, ts: Date.now() });
-    // Ocultar pantalla de entrada y mostrar cielo
-    entrada.classList.add("oculta");
-    cieloUI.classList.add("visible");
-  } catch(e) {
-    console.error(e);
-    document.getElementById("btn-enviar").disabled = false;
-  }
-};
+function mostrarResultado(texto) {
+  resultadoWrap.classList.add("visible");
 
-inputEl.addEventListener("keydown", e => { if (e.key === "Enter") window.enviarIdea(); });
+  const html = texto
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\n\n/g, "</p><p>")
+    .replace(/\n/g, "<br>");
 
-// ---- ESCUCHAR IDEAS EN TIEMPO REAL ----
-onSnapshot(collection(db, "ideas"), snapshot => {
-  ideasGlobales = [];
-  snapshot.forEach(d => {
-    ideasGlobales.push(d.data().texto);
-    if (!vistos.has(d.id)) {
-      vistos.add(d.id);
-      crearNube(d.data().texto);
-    }
-  });
-  totalEl.textContent = ideasGlobales.length;
-});
-
-// ---- NUBES ----
-function crearNube(texto) {
-  const n = document.createElement("div");
-  const c = COLORES[Math.floor(Math.random() * COLORES.length)];
-  n.className = `nube nueva ${c}`;
-  n.innerHTML = `
-    <div class="bl"></div>
-    <div class="br"></div>
-    <div class="nube-body"><span class="nube-texto">${esc(texto)}</span></div>`;
-
-  const pos = randomPos();
-  n.style.left = pos.x + "%";
-  n.style.top  = pos.y + "%";
-  n.style.animationDuration = (6 + Math.random()*6) + "s";
-  n.style.animationDelay    = (Math.random()*-8) + "s";
-  sky.appendChild(n);
-
-  // Máx 60 nubes
-  const nubes = sky.querySelectorAll(".nube");
-  if (nubes.length > 60) { nubes[0].remove(); posiciones.shift(); }
+  resultadoTexto.innerHTML = `<p>${html}</p>`;
 }
 
 function randomPos() {
-  let x, y, tries = 0;
+  let x, y, intentos = 0;
+
   do {
-    x = 3 + Math.random() * 82;
-    y = 3 + Math.random() * 85;
-    tries++;
-  } while (posiciones.some(p => Math.abs(p.x-x)<15 && Math.abs(p.y-y)<12) && tries < 30);
-  posiciones.push({x, y});
-  return {x, y};
+    x = 5 + Math.random() * 80;
+    y = 5 + Math.random() * 80;
+    intentos++;
+  } while (
+    posiciones.some(
+      (p) => Math.abs(p.x - x) < 15 && Math.abs(p.y - y) < 12
+    ) &&
+    intentos < 30
+  );
+
+  posiciones.push({ x, y });
+  return { x, y };
 }
 
-function esc(s) {
-  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+/* =========================
+   NUBES
+========================= */
+function crearNube(texto) {
+  const nube = document.createElement("div");
+  const color = COLORES[Math.floor(Math.random() * COLORES.length)];
+
+  nube.className = `nube nueva ${color}`;
+  nube.innerHTML = `
+    <div class="bl"></div>
+    <div class="br"></div>
+    <div class="nube-body">
+      <span class="nube-texto">${escapeHTML(texto)}</span>
+    </div>
+  `;
+
+  const pos = randomPos();
+  nube.style.left = `${pos.x}%`;
+  nube.style.top = `${pos.y}%`;
+  nube.style.animationDuration = `${6 + Math.random() * 6}s`;
+
+  sky.appendChild(nube);
+
+  const nubes = sky.querySelectorAll(".nube");
+  if (nubes.length > MAX_NUBES) {
+    nubes[0].remove();
+    posiciones.shift();
+  }
 }
 
-// ---- MODAL DE CLAVE ----
-window.solicitarAccion = function(accion) {
+/* =========================
+   FIREBASE - GUARDAR IDEA
+========================= */
+window.enviarIdea = async function () {
+  const texto = inputIdea.value.trim();
+  if (!texto) return;
+
+  btnEnviar.disabled = true;
+
+  try {
+    await addDoc(collection(db, "ideas"), {
+      texto,
+      createdAt: Date.now()
+    });
+
+    inputIdea.value = "";
+    entrada.classList.add("oculta");
+    cieloUI.classList.add("visible");
+  } catch (error) {
+    console.error("Error guardando idea:", error);
+    alert("No se pudo guardar la idea.");
+  } finally {
+    btnEnviar.disabled = false;
+  }
+};
+
+inputIdea.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") window.enviarIdea();
+});
+
+/* =========================
+   FIREBASE - TIEMPO REAL
+========================= */
+onSnapshot(collection(db, "ideas"), (snapshot) => {
+  ideasGlobales = [];
+
+  snapshot.forEach((item) => {
+    const data = item.data();
+    ideasGlobales.push(data.texto);
+
+    if (!vistos.has(item.id)) {
+      vistos.add(item.id);
+      crearNube(data.texto);
+    }
+  });
+
+  totalEl.textContent = ideasGlobales.length;
+});
+
+/* =========================
+   MODAL ADMIN
+========================= */
+window.solicitarAccion = function (accion) {
   accionPendiente = accion;
-  document.getElementById("modal-icon").textContent    = accion === 'analisis' ? "✨" : "🗑️";
-  document.getElementById("modal-title").textContent   = accion === 'analisis' ? "Analizar ideas" : "Reiniciar lluvia";
-  document.getElementById("modal-subtitle").textContent= accion === 'analisis'
-    ? "Ingresa la clave para generar el análisis"
-    : "Ingresa la clave para borrar todas las ideas";
   modalInput.value = "";
   modalError.classList.remove("visible");
   modalOverlay.classList.add("visible");
-  setTimeout(() => modalInput.focus(), 120);
+
+  setTimeout(() => modalInput.focus(), 150);
 };
 
-window.cerrarModal = function() {
+window.cerrarModal = function () {
   modalOverlay.classList.remove("visible");
   accionPendiente = null;
 };
 
-window.confirmarModal = function() {
-  if (modalInput.value !== CLAVE) {
+window.confirmarModal = function () {
+  if (modalInput.value !== CLAVE_ADMIN) {
     modalError.classList.add("visible");
     modalInput.value = "";
-    modalInput.focus();
-    setTimeout(() => modalError.classList.remove("visible"), 2000);
     return;
   }
+
   cerrarModal();
-  if (accionPendiente === 'analisis') ejecutarAnalisis();
-  else ejecutarReinicio();
+
+  if (accionPendiente === "analisis") {
+    ejecutarAnalisis();
+  }
+
+  if (accionPendiente === "reinicio") {
+    ejecutarReinicio();
+  }
 };
 
-modalInput.addEventListener("keydown", e => {
-  if (e.key === "Enter") window.confirmarModal();
-  if (e.key === "Escape") window.cerrarModal();
-});
-modalOverlay.addEventListener("click", e => {
-  if (e.target === modalOverlay) window.cerrarModal();
-});
-
-// ---- ANÁLISIS ----
+/* =========================
+   ANALISIS IA
+========================= */
 async function ejecutarAnalisis() {
-  if (!ideasGlobales.length) { alert("¡Aún no hay ideas!"); return; }
+  if (!ideasGlobales.length) {
+    alert("Aún no hay ideas registradas.");
+    return;
+  }
 
-  const btn = document.querySelector(".btn-analizar");
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span> Analizando...';
-  resultadoWrap.classList.add("visible");
-  resultadoTxt.innerHTML = '<span class="spinner"></span> Analizando las ideas...';
+  const lista = ideasGlobales
+    .map((idea, i) => `${i + 1}. ${idea}`)
+    .join("\n");
+
+  mostrarResultado("Analizando ideas del grupo...");
 
   try {
-    const lista = ideasGlobales.map((v,i) => `${i+1}. "${v}"`).join("\n");
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 1000,
-        messages: [{ role: "user", content:
-          `Eres un facilitador experto en dinámicas grupales. El grupo respondió: "¿Qué crees que es el brainstorming?"\n\nRespuestas (${ideasGlobales.length}):\n${lista}\n\nAnaliza y entrega:\n1. **Conclusión colectiva** (2-3 oraciones)\n2. **Temas clave** (3-5 conceptos recurrentes)\n3. **Idea destacada** (la más original)\n4. **Reflexión final** (diversidad o consenso)\n\nResponde en español, de forma amigable y motivadora.`
-        }]
-      })
-    });
-    if (!res.ok) throw new Error(res.status);
-    const data = await res.json();
-    const texto = data.content.filter(b=>b.type==="text").map(b=>b.text).join("\n");
-    mostrar(texto);
-  } catch(e) {
-    mostrar(fallback(ideasGlobales));
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = "✨ Analizar";
+    const prompt = `
+Eres un experto universitario en brainstorming y trabajo colaborativo.
+
+El grupo respondió a la pregunta:
+¿Qué crees que es el brainstorming?
+
+Respuestas:
+${lista}
+
+Debes responder con:
+
+1. Definición correcta de brainstorming
+2. Concepto construido por el grupo
+3. Comparación entre ambos
+4. Temas clave más repetidos
+5. Conclusión final académica
+
+Responde en español, tono profesional y claro.
+`;
+
+    // Aquí luego conectas tu API real
+    // mientras tanto usamos fallback local
+    throw new Error("Modo local");
+  } catch (error) {
+    mostrarResultado(generarFallback(ideasGlobales));
   }
 }
 
-// ---- REINICIO ----
+function generarFallback(ideas) {
+  const stopWords = new Set([
+    "el", "la", "los", "las", "es", "un", "una", "de",
+    "y", "para", "que", "en", "con", "como", "por"
+  ]);
+
+  const contador = {};
+
+  ideas.forEach((texto) => {
+    texto
+      .toLowerCase()
+      .replace(/[^\w\s]/g, "")
+      .split(/\s+/)
+      .forEach((palabra) => {
+        if (!stopWords.has(palabra) && palabra.length > 3) {
+          contador[palabra] = (contador[palabra] || 0) + 1;
+        }
+      });
+  });
+
+  const top = Object.entries(contador)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([p]) => `**${p}**`)
+    .join(", ");
+
+  return `
+**Definición correcta:**
+El brainstorming es una técnica grupal orientada a generar ideas libremente sin críticas iniciales.
+
+**Concepto del grupo:**
+Los participantes lo relacionan con creatividad, colaboración y construcción de soluciones.
+
+**Temas clave:**
+${top || "creatividad, grupo y participación"}
+
+**Conclusión final:**
+El grupo comprende adecuadamente que el brainstorming permite construir conocimiento colectivo mediante la participación activa.
+`;
+}
+
+/* =========================
+   REINICIAR
+========================= */
 async function ejecutarReinicio() {
-  const btn = document.querySelector(".btn-reiniciar");
-  btn.disabled = true;
-  btn.textContent = "⏳ Borrando...";
   try {
-    const snap = await getDocs(collection(db, "ideas"));
-    await Promise.all(snap.docs.map(d => deleteDoc(doc(db, "ideas", d.id))));
-    // Limpiar estado
+    const snapshot = await getDocs(collection(db, "ideas"));
+
+    await Promise.all(
+      snapshot.docs.map((d) => deleteDoc(doc(db, "ideas", d.id)))
+    );
+
     sky.innerHTML = "";
+    ideasGlobales = [];
     posiciones.length = 0;
     vistos.clear();
-    ideasGlobales = [];
     totalEl.textContent = "0";
-    resultadoWrap.classList.remove("visible");
-    // Volver a la pantalla de entrada
+
     entrada.classList.remove("oculta");
     cieloUI.classList.remove("visible");
-    inputEl.value = "";
-    document.getElementById("btn-enviar").disabled = false;
-  } catch(e) {
-    alert("Error al reiniciar.");
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = "🗑️ Reiniciar";
+    resultadoWrap.classList.remove("visible");
+  } catch (error) {
+    console.error(error);
+    alert("No se pudo reiniciar.");
   }
 }
 
-// ---- MOSTRAR RESULTADO ----
-function mostrar(texto) {
-  const html = texto
-    .replace(/\*\*(.*?)\*\*/g,"<strong>$1</strong>")
-    .replace(/\*(.*?)\*/g,"<em>$1</em>")
-    .replace(/\n\n/g,"</p><p style='margin-top:8px'>")
-    .replace(/\n/g,"<br>");
-  const div = document.createElement("div");
-  div.innerHTML = html;
-  div.style.cssText = "opacity:0;transition:opacity 0.6s ease";
-  resultadoTxt.innerHTML = "";
-  resultadoTxt.appendChild(div);
-  requestAnimationFrame(() => requestAnimationFrame(() => div.style.opacity = "1"));
-}
+/* =========================
+   CHATBOT IA (BASE)
+========================= */
+window.preguntarIA = async function () {
+  const pregunta = document.getElementById("pregunta")?.value?.trim();
+  const chat = document.getElementById("chat-box");
 
-// ---- FALLBACK LOCAL ----
-function fallback(ideas) {
-  const stop = new Set(["el","la","los","las","es","un","una","de","y","para","que","en","con","como","se","del","al","por","son","más","muy","lo","no","si","su","hay","pero","también","esto","esta","idea","ideas"]);
-  const cnt = {};
-  ideas.forEach(t => t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^\w\s]/g,"").split(/\s+/).forEach(p => {
-    if (!stop.has(p) && p.length > 3) cnt[p] = (cnt[p]||0)+1;
-  }));
-  const top = Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([p])=>`**${p}**`).join(", ");
-  if (!top) return "Aún no hay suficientes ideas para analizar.";
-  return `**Conclusión colectiva:** El grupo entiende el brainstorming como una técnica creativa y colaborativa para generar ideas libremente.\n\n**Temas clave:** ${top}\n\n**Reflexión final:** ¡El grupo muestra un excelente nivel de comprensión! 🎉`;
-}
+  if (!pregunta || !chat) return;
+
+  chat.innerHTML += `<div><strong>Tú:</strong> ${escapeHTML(pregunta)}</div>`;
+
+  let respuesta = "Solo puedo responder preguntas relacionadas con brainstorming.";
+
+  const permitidas = [
+    "brainstorming",
+    "lluvia de ideas",
+    "ideas",
+    "creatividad",
+    "grupo",
+    "colaborativo"
+  ];
+
+  const valida = permitidas.some((p) =>
+    pregunta.toLowerCase().includes(p)
+  );
+
+  if (valida) {
+    respuesta = "El brainstorming es una técnica colaborativa que permite generar ideas libremente para resolver problemas y construir soluciones en grupo.";
+  }
+
+  chat.innerHTML += `<div><strong>Bot:</strong> ${respuesta}</div>`;
+  chat.scrollTop = chat.scrollHeight;
+};
