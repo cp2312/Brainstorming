@@ -14,37 +14,59 @@ export default async function handler(req, res) {
   }
 
   try {
-    const response = await fetch("/api/chatbot", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": process.env.ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01"
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 700,
-        messages: [
-          {
-            role: "user",
-            content: `
+    // AQUÍ debe ir la llamada real a Anthropic,
+    // NO a /api/chatbot porque eso crea un bucle infinito
+    const response = await fetch(
+      "https://api.anthropic.com/v1/messages",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": process.env.ANTHROPIC_API_KEY,
+          "anthropic-version": "2023-06-01"
+        },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 700,
+          messages: [
+            {
+              role: "user",
+              content: `
 Eres un asistente universitario especializado únicamente en brainstorming.
 
-Solo respondes preguntas sobre brainstorming.
+Solo respondes preguntas relacionadas con:
+- brainstorming
+- lluvia de ideas
+- creatividad grupal
+- trabajo colaborativo
+- solución de problemas en grupo
+- reglas del brainstorming
+- aplicaciones del brainstorming
 
-Si preguntan algo fuera del tema responde:
+Si el usuario pregunta algo fuera de este tema, responde exactamente:
 
 "Solo puedo responder preguntas relacionadas con brainstorming."
 
-Pregunta:
+Pregunta del usuario:
 ${pregunta}
 `
-          }
-        ]
-      })
-    });
+            }
+          ]
+        })
+      }
+    );
 
+    // Verificar si Anthropic respondió bien
     const data = await response.json();
+
+    console.log("RESPUESTA DE ANTHROPIC:", data);
+
+    // Si Anthropic devuelve error
+    if (!response.ok) {
+      return res.status(response.status).json({
+        error: data?.error?.message || "Error en Anthropic"
+      });
+    }
 
     const respuesta = data.content
       ?.filter(item => item.type === "text")
@@ -52,14 +74,14 @@ ${pregunta}
       ?.join("\n");
 
     return res.status(200).json({
-      respuesta
+      respuesta: respuesta || "No se recibió respuesta de la IA"
     });
 
   } catch (error) {
-    console.error(error);
+    console.error("ERROR REAL:", error);
 
     return res.status(500).json({
-      error: error.message
+      error: error.message || "Error interno del servidor"
     });
   }
 }

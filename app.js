@@ -355,22 +355,25 @@ window.preguntarIA = async function () {
       })
     });
 
-    const data = await res.json();
+const data = await res.json();
 
-    chatBox.innerHTML += `
-      <div class="msg-bot">
-         ${data.respuesta || "Sin respuesta"}
-      </div>
-    `;
+console.log("Respuesta del backend:", data);
 
-  } catch (error) {
-    chatBox.innerHTML += `
-      <div class="msg-bot">
-         Error al conectar con la IA
-      </div>
-    `;
-  }
+chatBox.innerHTML += `
+  <div class="msg-bot">
+    🤖 ${data.respuesta || data.error || "Sin respuesta"}
+  </div>
+`;
 
-  chatBox.scrollTop = chatBox.scrollHeight;
+} catch (error) {
+  console.error("Error frontend:", error);
+
+  chatBox.innerHTML += `
+    <div class="msg-bot">
+      ❌ ${error.message || "Error al conectar con la IA"}
+    </div>
+  `;
+}
+
+chatBox.scrollTop = chatBox.scrollHeight;
 };
-
