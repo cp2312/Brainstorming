@@ -189,7 +189,7 @@ window.cerrarModal = function () {
 };
 
 window.confirmarModal = function () {
-  if (modalInput.value !== CLAVE) {
+  if (modalInput.value !== CLAVE_ADMIN) {
     modalError.classList.add("visible");
     modalInput.value = "";
     modalInput.focus();
