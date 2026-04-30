@@ -189,19 +189,28 @@ window.cerrarModal = function () {
 };
 
 window.confirmarModal = function () {
-  if (modalInput.value !== CLAVE_ADMIN) {
+  if (modalInput.value !== CLAVE) {
     modalError.classList.add("visible");
     modalInput.value = "";
+    modalInput.focus();
+
+    setTimeout(() => {
+      modalError.classList.remove("visible");
+    }, 2000);
+
     return;
   }
 
+  // guardar la acción antes de cerrar
+  const accion = accionPendiente;
+
   cerrarModal();
 
-  if (accionPendiente === "analisis") {
+  if (accion === "analisis") {
     ejecutarAnalisis();
   }
 
-  if (accionPendiente === "reinicio") {
+  if (accion === "reinicio") {
     ejecutarReinicio();
   }
 };
