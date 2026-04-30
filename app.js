@@ -326,93 +326,16 @@ async function ejecutarReinicio() {
   }
 }
 
-/* =========================
-   CHATBOT IA (BASE)
-========================= */
-window.preguntarIA = async function () {
-  const input = document.getElementById("pregunta");
-  const chatBox = document.getElementById("chat-box");
+const res = await fetch("/api/chatbot", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    pregunta: pregunta
+  })
+});
 
-  const pregunta = input.value.trim();
+const data = await res.json();
 
-  if (!pregunta) return;
-
-  // Mostrar pregunta del usuario
-  chatBox.innerHTML += `
-    <div class="msg-user">
-      👤 Tú: ${pregunta}
-    </div>
-  `;
-
-  input.value = "";
-
-  // Mensaje temporal
-  chatBox.innerHTML += `
-    <div class="msg-bot" id="loading-msg">
-      🤖 Pensando...
-    </div>
-  `;
-
-  chatBox.scrollTop = chatBox.scrollHeight;
-
-  try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": "sk-ant-api03-R2D...igAA",
-        "anthropic-version": "2023-06-01"
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 700,
-        messages: [
-          {
-            role: "user",
-            content: `
-Eres un asistente universitario especializado únicamente en brainstorming.
-
-Solo puedes responder preguntas relacionadas con:
-- brainstorming
-- lluvia de ideas
-- creatividad grupal
-- trabajo colaborativo
-- solución de problemas en grupo
-- reglas del brainstorming
-- aplicaciones del brainstorming
-
-Si el usuario pregunta algo fuera de este tema, responde exactamente:
-
-"Solo puedo responder preguntas relacionadas con brainstorming."
-
-Pregunta del usuario:
-${pregunta}
-`
-          }
-        ]
-      })
-    });
-
-    const data = await res.json();
-
-    const respuesta = data.content
-      .filter(b => b.type === "text")
-      .map(b => b.text)
-      .join("\n");
-
-    document.getElementById("loading-msg").outerHTML = `
-      <div class="msg-bot">
-        🤖 ${respuesta}
-      </div>
-    `;
-
-  } catch (error) {
-    document.getElementById("loading-msg").outerHTML = `
-      <div class="msg-bot">
-        ❌ Error al conectar con la IA
-      </div>
-    `;
-  }
-
-  chatBox.scrollTop = chatBox.scrollHeight;
-};
+const respuesta = data.respuesta || "No se pudo obtener respuesta.";
