@@ -378,3 +378,51 @@ input::placeholder { color: rgba(76,74,110,0.45); }
   .btn-ctrl { padding: 11px 16px; font-size: 13px; }
   .resultado-wrap { bottom: 80px; }
 }
+
+
+
+/*Estos son los estilos para el chatbot */
+.chatbot-box {
+  margin-top: 40px;
+  background: rgba(255,255,255,0.12);
+  border-radius: 20px;
+  padding: 25px;
+  backdrop-filter: blur(10px);
+}
+
+.chatbot-box h2 {
+  margin-bottom: 10px;
+}
+
+#chat-box {
+  min-height: 220px;
+  max-height: 350px;
+  overflow-y: auto;
+  background: rgba(0,0,0,0.2);
+  border-radius: 12px;
+  padding: 15px;
+  margin: 20px 0;
+}
+
+.msg-user {
+  margin-bottom: 15px;
+  font-weight: bold;
+}
+
+.msg-bot {
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.chat-input {
+  display: flex;
+  gap: 10px;
+}
+
+.chat-input input {
+  flex: 1;
+}
+
+.chat-input button {
+  width: 180px;
+}

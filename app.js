@@ -330,32 +330,89 @@ async function ejecutarReinicio() {
    CHATBOT IA (BASE)
 ========================= */
 window.preguntarIA = async function () {
-  const pregunta = document.getElementById("pregunta")?.value?.trim();
-  const chat = document.getElementById("chat-box");
+  const input = document.getElementById("pregunta");
+  const chatBox = document.getElementById("chat-box");
 
-  if (!pregunta || !chat) return;
+  const pregunta = input.value.trim();
 
-  chat.innerHTML += `<div><strong>Tú:</strong> ${escapeHTML(pregunta)}</div>`;
+  if (!pregunta) return;
 
-  let respuesta = "Solo puedo responder preguntas relacionadas con brainstorming.";
+  // Mostrar pregunta del usuario
+  chatBox.innerHTML += `
+    <div class="msg-user">
+      👤 Tú: ${pregunta}
+    </div>
+  `;
 
-  const permitidas = [
-    "brainstorming",
-    "lluvia de ideas",
-    "ideas",
-    "creatividad",
-    "grupo",
-    "colaborativo"
-  ];
+  input.value = "";
 
-  const valida = permitidas.some((p) =>
-    pregunta.toLowerCase().includes(p)
-  );
+  // Mensaje temporal
+  chatBox.innerHTML += `
+    <div class="msg-bot" id="loading-msg">
+      🤖 Pensando...
+    </div>
+  `;
 
-  if (valida) {
-    respuesta = "El brainstorming es una técnica colaborativa que permite generar ideas libremente para resolver problemas y construir soluciones en grupo.";
+  chatBox.scrollTop = chatBox.scrollHeight;
+
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": "sk-ant-api03-R2D...igAA",
+        "anthropic-version": "2023-06-01"
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 700,
+        messages: [
+          {
+            role: "user",
+            content: `
+Eres un asistente universitario especializado únicamente en brainstorming.
+
+Solo puedes responder preguntas relacionadas con:
+- brainstorming
+- lluvia de ideas
+- creatividad grupal
+- trabajo colaborativo
+- solución de problemas en grupo
+- reglas del brainstorming
+- aplicaciones del brainstorming
+
+Si el usuario pregunta algo fuera de este tema, responde exactamente:
+
+"Solo puedo responder preguntas relacionadas con brainstorming."
+
+Pregunta del usuario:
+${pregunta}
+`
+          }
+        ]
+      })
+    });
+
+    const data = await res.json();
+
+    const respuesta = data.content
+      .filter(b => b.type === "text")
+      .map(b => b.text)
+      .join("\n");
+
+    document.getElementById("loading-msg").outerHTML = `
+      <div class="msg-bot">
+        🤖 ${respuesta}
+      </div>
+    `;
+
+  } catch (error) {
+    document.getElementById("loading-msg").outerHTML = `
+      <div class="msg-bot">
+        ❌ Error al conectar con la IA
+      </div>
+    `;
   }
 
-  chat.innerHTML += `<div><strong>Bot:</strong> ${respuesta}</div>`;
-  chat.scrollTop = chat.scrollHeight;
+  chatBox.scrollTop = chatBox.scrollHeight;
 };
