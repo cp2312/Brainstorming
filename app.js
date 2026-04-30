@@ -326,16 +326,51 @@ async function ejecutarReinicio() {
   }
 }
 
-const res = await fetch("/api/chatbot", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({
-    pregunta: pregunta
-  })
-});
+window.preguntarIA = async function () {
+  console.log("Chatbot funcionando");
 
-const data = await res.json();
+  const input = document.getElementById("pregunta");
+  const chatBox = document.getElementById("chat-box");
 
-const respuesta = data.respuesta || "No se pudo obtener respuesta.";
+  const pregunta = input.value.trim();
+
+  if (!pregunta) return;
+
+  chatBox.innerHTML += `
+    <div class="msg-user">
+      👤 Tú: ${pregunta}
+    </div>
+  `;
+
+  input.value = "";
+
+  try {
+    const res = await fetch("/api/chatbot", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        pregunta: pregunta
+      })
+    });
+
+    const data = await res.json();
+
+    chatBox.innerHTML += `
+      <div class="msg-bot">
+         ${data.respuesta || "Sin respuesta"}
+      </div>
+    `;
+
+  } catch (error) {
+    chatBox.innerHTML += `
+      <div class="msg-bot">
+         Error al conectar con la IA
+      </div>
+    `;
+  }
+
+  chatBox.scrollTop = chatBox.scrollHeight;
+};
+
