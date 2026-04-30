@@ -13,12 +13,12 @@ import {
    FIREBASE CONFIG
 ========================= */
 const firebaseConfig = {
-  apiKey: "TU_API_KEY",
-  authDomain: "TU_AUTH_DOMAIN",
-  projectId: "TU_PROJECT_ID",
-  storageBucket: "TU_STORAGE_BUCKET",
-  messagingSenderId: "TU_MESSAGING_SENDER_ID",
-  appId: "TU_APP_ID"
+  apiKey: "AIzaSyAIuQfx7L8gEEeDt7RDxOfkKN1mNndiVuU",
+  authDomain: "brainstorming-universidad.firebaseapp.com",
+  projectId: "brainstorming-universidad",
+  storageBucket: "brainstorming-universidad.firebasestorage.app",
+  messagingSenderId: "707126023361",
+  appId: "1:707126023361:web:495e6271801f0e5e29b040"
 };
 
 const app = initializeApp(firebaseConfig);
