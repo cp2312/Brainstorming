@@ -39,19 +39,17 @@ const posiciones = [];
 /* =========================
    DOM
 ========================= */
-const sky = document.getElementById("sky");
-const entrada = document.getElementById("entrada");
-const cieloUI = document.getElementById("cielo-ui");
-const totalEl = document.getElementById("total");
-const inputIdea = document.getElementById("idea");
-const resultadoWrap = document.getElementById("resultado-wrap");
+const sky            = document.getElementById("sky");
+const entrada        = document.getElementById("entrada");
+const cieloUI        = document.getElementById("cielo-ui");
+const totalEl        = document.getElementById("total");
+const inputIdea      = document.getElementById("idea");
+const resultadoWrap  = document.getElementById("resultado-wrap");
 const resultadoTexto = document.getElementById("resultado-texto");
-
-const modalOverlay = document.getElementById("modal-overlay");
-const modalInput = document.getElementById("modal-input");
-const modalError = document.getElementById("modal-error");
-
-const btnEnviar = document.getElementById("btn-enviar");
+const modalOverlay   = document.getElementById("modal-overlay");
+const modalInput     = document.getElementById("modal-input");
+const modalError     = document.getElementById("modal-error");
+const btnEnviar      = document.getElementById("btn-enviar");
 
 /* =========================
    UTILIDADES
@@ -65,29 +63,23 @@ function escapeHTML(texto) {
 
 function mostrarResultado(texto) {
   resultadoWrap.classList.add("visible");
-
   const html = texto
     .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
     .replace(/\n\n/g, "</p><p>")
     .replace(/\n/g, "<br>");
-
   resultadoTexto.innerHTML = `<p>${html}</p>`;
 }
 
 function randomPos() {
   let x, y, intentos = 0;
-
   do {
     x = 5 + Math.random() * 80;
     y = 5 + Math.random() * 80;
     intentos++;
   } while (
-    posiciones.some(
-      (p) => Math.abs(p.x - x) < 15 && Math.abs(p.y - y) < 12
-    ) &&
+    posiciones.some(p => Math.abs(p.x - x) < 15 && Math.abs(p.y - y) < 12) &&
     intentos < 30
   );
-
   posiciones.push({ x, y });
   return { x, y };
 }
@@ -96,9 +88,8 @@ function randomPos() {
    NUBES
 ========================= */
 function crearNube(texto) {
-  const nube = document.createElement("div");
+  const nube  = document.createElement("div");
   const color = COLORES[Math.floor(Math.random() * COLORES.length)];
-
   nube.className = `nube nueva ${color}`;
   nube.innerHTML = `
     <div class="bl"></div>
@@ -107,14 +98,11 @@ function crearNube(texto) {
       <span class="nube-texto">${escapeHTML(texto)}</span>
     </div>
   `;
-
   const pos = randomPos();
   nube.style.left = `${pos.x}%`;
-  nube.style.top = `${pos.y}%`;
+  nube.style.top  = `${pos.y}%`;
   nube.style.animationDuration = `${6 + Math.random() * 6}s`;
-
   sky.appendChild(nube);
-
   const nubes = sky.querySelectorAll(".nube");
   if (nubes.length > MAX_NUBES) {
     nubes[0].remove();
@@ -125,18 +113,12 @@ function crearNube(texto) {
 /* =========================
    FIREBASE - GUARDAR IDEA
 ========================= */
-window.enviarIdea = async function () {
+async function enviarIdea() {
   const texto = inputIdea.value.trim();
   if (!texto) return;
-
   btnEnviar.disabled = true;
-
   try {
-    await addDoc(collection(db, "ideas"), {
-      texto,
-      createdAt: Date.now()
-    });
-
+    await addDoc(collection(db, "ideas"), { texto, createdAt: Date.now() });
     inputIdea.value = "";
     entrada.classList.add("oculta");
     cieloUI.classList.add("visible");
@@ -146,77 +128,64 @@ window.enviarIdea = async function () {
   } finally {
     btnEnviar.disabled = false;
   }
-};
+}
 
-inputIdea.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") window.enviarIdea();
-});
+btnEnviar.addEventListener("click", enviarIdea);
+inputIdea.addEventListener("keydown", (e) => { if (e.key === "Enter") enviarIdea(); });
 
 /* =========================
    FIREBASE - TIEMPO REAL
 ========================= */
 onSnapshot(collection(db, "ideas"), (snapshot) => {
   ideasGlobales = [];
-
   snapshot.forEach((item) => {
     const data = item.data();
     ideasGlobales.push(data.texto);
-
     if (!vistos.has(item.id)) {
       vistos.add(item.id);
       crearNube(data.texto);
     }
   });
-
   totalEl.textContent = ideasGlobales.length;
 });
 
 /* =========================
    MODAL ADMIN
 ========================= */
-window.solicitarAccion = function (accion) {
+function solicitarAccion(accion) {
   accionPendiente = accion;
   modalInput.value = "";
   modalError.classList.remove("visible");
   modalOverlay.classList.add("visible");
-
   setTimeout(() => modalInput.focus(), 150);
-};
+}
 
-window.cerrarModal = function () {
+function cerrarModal() {
   modalOverlay.classList.remove("visible");
   accionPendiente = null;
-};
+}
 
-window.confirmarModal = function () {
+function confirmarModal() {
   if (modalInput.value !== CLAVE_ADMIN) {
     modalError.classList.add("visible");
     modalInput.value = "";
     modalInput.focus();
-
-    setTimeout(() => {
-      modalError.classList.remove("visible");
-    }, 2000);
-
+    setTimeout(() => modalError.classList.remove("visible"), 2000);
     return;
   }
-
-  // guardar la acción antes de cerrar
   const accion = accionPendiente;
-
   cerrarModal();
+  if (accion === "analisis") ejecutarAnalisis();
+  if (accion === "reinicio") ejecutarReinicio();
+}
 
-  if (accion === "analisis") {
-    ejecutarAnalisis();
-  }
-
-  if (accion === "reinicio") {
-    ejecutarReinicio();
-  }
-};
+// Exponer al HTML (los botones del modal usan onclick=)
+window.solicitarAccion = solicitarAccion;
+window.cerrarModal     = cerrarModal;
+window.confirmarModal  = confirmarModal;
 
 /* =========================
-   ANALISIS IA
+   ANÁLISIS IA — GEMINI VÍA /api/chatbot
 ========================= */
 async function ejecutarAnalisis() {
   if (!ideasGlobales.length) {
@@ -224,69 +193,46 @@ async function ejecutarAnalisis() {
     return;
   }
 
-  const lista = ideasGlobales
-    .map((idea, i) => `${i + 1}. ${idea}`)
-    .join("\n");
-
-  mostrarResultado("Analizando ideas del grupo...");
+  mostrarResultado("⏳ Analizando ideas del grupo con IA...");
 
   try {
-    const prompt = `
-Eres un experto universitario en brainstorming y trabajo colaborativo.
+    const res = await fetch("/api/chatbot", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        pregunta: "Analiza las ideas del grupo y construye una definición colectiva de brainstorming.",
+        ideas: ideasGlobales
+      }),
+    });
 
-El grupo respondió a la pregunta:
-¿Qué crees que es el brainstorming?
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `Error ${res.status}`);
+    mostrarResultado(data.respuesta);
 
-Respuestas:
-${lista}
-
-Debes responder con:
-
-1. Definición correcta de brainstorming
-2. Concepto construido por el grupo
-3. Comparación entre ambos
-4. Temas clave más repetidos
-5. Conclusión final académica
-
-Responde en español, tono profesional y claro.
-`;
-
-    // Aquí luego conectas tu API real
-    // mientras tanto usamos fallback local
-    throw new Error("Modo local");
   } catch (error) {
+    console.error("Error en análisis:", error);
     mostrarResultado(generarFallback(ideasGlobales));
   }
 }
 
 function generarFallback(ideas) {
   const stopWords = new Set([
-    "el", "la", "los", "las", "es", "un", "una", "de",
-    "y", "para", "que", "en", "con", "como", "por"
+    "el","la","los","las","es","un","una","de","y","para","que","en","con","como","por"
   ]);
-
   const contador = {};
-
   ideas.forEach((texto) => {
-    texto
-      .toLowerCase()
-      .replace(/[^\w\s]/g, "")
-      .split(/\s+/)
-      .forEach((palabra) => {
-        if (!stopWords.has(palabra) && palabra.length > 3) {
-          contador[palabra] = (contador[palabra] || 0) + 1;
-        }
-      });
+    texto.toLowerCase().replace(/[^\w\s]/g, "").split(/\s+/).forEach((palabra) => {
+      if (!stopWords.has(palabra) && palabra.length > 3)
+        contador[palabra] = (contador[palabra] || 0) + 1;
+    });
   });
-
   const top = Object.entries(contador)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5)
     .map(([p]) => `**${p}**`)
     .join(", ");
 
-  return `
-**Definición correcta:**
+  return `**Definición correcta:**
 El brainstorming es una técnica grupal orientada a generar ideas libremente sin críticas iniciales.
 
 **Concepto del grupo:**
@@ -296,8 +242,7 @@ Los participantes lo relacionan con creatividad, colaboración y construcción d
 ${top || "creatividad, grupo y participación"}
 
 **Conclusión final:**
-El grupo comprende adecuadamente que el brainstorming permite construir conocimiento colectivo mediante la participación activa.
-`;
+El grupo comprende adecuadamente que el brainstorming permite construir conocimiento colectivo mediante la participación activa.`;
 }
 
 /* =========================
@@ -306,17 +251,12 @@ El grupo comprende adecuadamente que el brainstorming permite construir conocimi
 async function ejecutarReinicio() {
   try {
     const snapshot = await getDocs(collection(db, "ideas"));
-
-    await Promise.all(
-      snapshot.docs.map((d) => deleteDoc(doc(db, "ideas", d.id)))
-    );
-
+    await Promise.all(snapshot.docs.map(d => deleteDoc(doc(db, "ideas", d.id))));
     sky.innerHTML = "";
     ideasGlobales = [];
     posiciones.length = 0;
     vistos.clear();
     totalEl.textContent = "0";
-
     entrada.classList.remove("oculta");
     cieloUI.classList.remove("visible");
     resultadoWrap.classList.remove("visible");
@@ -326,54 +266,67 @@ async function ejecutarReinicio() {
   }
 }
 
-window.preguntarIA = async function () {
-  console.log("Chatbot funcionando");
-
-  const input = document.getElementById("pregunta");
+/* =========================
+   CHATBOT
+========================= */
+async function preguntarIA() {
+  const input   = document.getElementById("pregunta");
   const chatBox = document.getElementById("chat-box");
-
   const pregunta = input.value.trim();
-
   if (!pregunta) return;
 
-  chatBox.innerHTML += `
-    <div class="msg-user">
-      👤 Tú: ${pregunta}
-    </div>
-  `;
-
+  chatBox.innerHTML += `<div class="msg-user">👤 Tú: ${escapeHTML(pregunta)}</div>`;
   input.value = "";
+  chatBox.scrollTop = chatBox.scrollHeight;
+
+  const loadingId = "loading-" + Date.now();
+  chatBox.innerHTML += `<div class="msg-bot" id="${loadingId}">🤖 Escribiendo...</div>`;
+  chatBox.scrollTop = chatBox.scrollHeight;
 
   try {
     const res = await fetch("/api/chatbot", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        pregunta: pregunta
-      })
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pregunta }),
     });
 
-const data = await res.json();
+    const data = await res.json();
+    document.getElementById(loadingId)?.remove();
 
-console.log("Respuesta del backend:", data);
+    if (!res.ok) throw new Error(data.error || `Error ${res.status}`);
 
-chatBox.innerHTML += `
-  <div class="msg-bot">
-    🤖 ${data.respuesta || data.error || "Sin respuesta"}
-  </div>
-`;
+    const html = data.respuesta
+      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+      .replace(/\n/g, "<br>");
 
-} catch (error) {
-  console.error("Error frontend:", error);
+    chatBox.innerHTML += `<div class="msg-bot">🤖 ${html}</div>`;
 
-  chatBox.innerHTML += `
-    <div class="msg-bot">
-      ❌ ${error.message || "Error al conectar con la IA"}
-    </div>
-  `;
+  } catch (error) {
+    document.getElementById(loadingId)?.remove();
+    chatBox.innerHTML += `<div class="msg-bot">❌ ${escapeHTML(error.message)}</div>`;
+    console.error("Error chatbot:", error);
+  }
+
+  chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-chatBox.scrollTop = chatBox.scrollHeight;
-};
+/* =========================
+   CHATBOT - EVENTOS UI
+========================= */
+document.getElementById("btn-toggle-chat")
+  .addEventListener("click", () => {
+    document.getElementById("chatbot-panel").classList.toggle("open");
+  });
+
+document.getElementById("btn-cerrar-chat")
+  .addEventListener("click", () => {
+    document.getElementById("chatbot-panel").classList.remove("open");
+  });
+
+document.getElementById("btn-enviar-chat")
+  .addEventListener("click", () => preguntarIA());
+
+document.getElementById("pregunta")
+  .addEventListener("keydown", (e) => {
+    if (e.key === "Enter") preguntarIA();
+  });
