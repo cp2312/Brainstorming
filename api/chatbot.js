@@ -56,8 +56,8 @@ function buildPrompt(pregunta, ideas, chunks) {
 - Responde siempre en español.`;
 
   if (ideas && ideas.length > 0) {
-    const listaIdeas = ideas.map((idea, i) => `${i + 1}. ${idea}`).join("\n");
-    return `Eres un experto universitario en brainstorming. ${restricciones}
+  const listaIdeas = ideas.map((idea, i) => `${i + 1}. ${idea}`).join("\n");
+  return `Eres un experto universitario en brainstorming. Responde siempre en español.
 
 CONTEXTO ACADÉMICO:
 ---
@@ -67,15 +67,8 @@ ${contexto}
 IDEAS ESCRITAS POR EL GRUPO:
 ${listaIdeas}
 
-Responde con esta estructura exacta:
-
-**1. Definición correcta de brainstorming**
-**2. Concepto construido por el grupo**
-**3. Comparación**
-**4. Palabras y temas clave más mencionados**
-**5. Conclusión académica**`;
-  }
-
+Con base en las ideas del grupo y el contexto académico, redacta un único concepto breve y claro de qué es el brainstorming según lo que el grupo expresó. Máximo 5 oraciones. Sin títulos, sin listas, solo el concepto en párrafo.`;
+}
   return `Eres un asistente experto en brainstorming. ${restricciones}
 
 Basa tu respuesta SOLO en este contexto académico:
