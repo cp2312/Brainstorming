@@ -65,6 +65,28 @@
     </div>
   </div>
 
+  <!-- CHATBOT -->
+<div class="chatbot-wrapper" id="chatbot-wrapper">
+  <button class="chatbot-toggle" onclick="toggleChat()">
+    💬 Preguntar a la IA
+  </button>
+
+  <div class="chatbot-panel" id="chatbot-panel">
+    <div class="chatbot-header">
+      <span>🧠 Asistente Brainstorming</span>
+      <button onclick="toggleChat()">✕</button>
+    </div>
+    <div class="chat-box" id="chat-box">
+      <div class="msg-bot">¡Hola! Pregúntame cualquier cosa sobre brainstorming 💡</div>
+    </div>
+    <div class="chatbot-input">
+      <input type="text" id="pregunta" placeholder="Escribe tu pregunta..." 
+             onkeydown="if(event.key==='Enter') preguntarIA()">
+      <button onclick="preguntarIA()">→</button>
+    </div>
+  </div>
+</div>
+
 
   <script type="module" src="app.js"></script>
 </body>
