@@ -193,7 +193,7 @@ async function ejecutarAnalisis() {
     return;
   }
 
-  mostrarResultado("⏳ Analizando ideas del grupo con IA...");
+  mostrarResultado("Analizando ideas del grupo con IA...");
 
   try {
     const res = await fetch("/api/chatbot", {
@@ -299,7 +299,7 @@ async function preguntarIA() {
       .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
       .replace(/\n/g, "<br>");
 
-    chatBox.innerHTML += `<div class="msg-bot">🤖 ${html}</div>`;
+    chatBox.innerHTML += `<div class="msg-bot"> ${html}</div>`;
 
   } catch (error) {
     document.getElementById(loadingId)?.remove();

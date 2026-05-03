@@ -7,28 +7,35 @@
  */
 
 const KNOWLEDGE_BASE = [
-  `El brainstorming (lluvia de ideas) es una técnica creativa grupal desarrollada por Alex Osborn en 1953.
-   Su objetivo es generar la mayor cantidad posible de ideas en poco tiempo, sin juzgar ni criticar durante la generación.`,
-  `Las cuatro reglas fundamentales del brainstorming son:
-   1. Aplazar el juicio: prohibido criticar ideas durante la sesión.
-   2. Cantidad sobre calidad: generar el mayor número posible de ideas.
-   3. Ideas disparatadas bienvenidas: las ideas locas pueden inspirar soluciones originales.
-   4. Combinar y mejorar: construir sobre las ideas de los demás.`,
-  `Técnicas populares: Brainwriting (ideas en silencio), Método 6-3-5 (6 personas, 3 ideas, 5 rondas),
-   SCAMPER (Sustituir, Combinar, Adaptar, Modificar, Poner otros usos, Eliminar, Reorganizar),
-   Round Robin (turnos equitativos), Reverse Brainstorming (cómo empeorar el problema).`,
-  `Para facilitar una sesión efectiva: define claramente el problema, grupo ideal de 5-8 personas,
-   duración óptima 30-60 minutos, facilitador neutral que gestione sin generar ideas.`,
-  `Errores comunes: críticas prematuras, problema mal definido, grupos homogéneos,
-   dominancia de una persona (groupthink), sesiones largas, no hacer seguimiento.`,
-  `El mind mapping fue popularizado por Tony Buzan. El tema va al centro y las ideas
-   se ramifican hacia afuera, permitiendo ver conexiones no lineales entre conceptos.`,
-  `Evaluación de ideas: dot voting, matriz impacto vs esfuerzo, análisis FODA,
-   agrupación por afinidad (affinity mapping) antes de evaluar y priorizar.`,
+  `El brainstorming, también conocido como lluvia de ideas, es una técnica creativa utilizada para generar muchas ideas sobre un tema o problema específico, con el objetivo principal de encontrar soluciones innovadoras mediante la participación libre de varias personas. Su principio más importante es que primero se busca la cantidad de ideas y después se evalúa su calidad.`,
+
+  `El brainstorming fue creado por Alex Faickney Osborn en 1939, quien observó que los grupos producían mejores resultados cuando podían expresar sus pensamientos sin recibir críticas inmediatas. En 1953 publicó su libro Applied Imagination, donde explicó formalmente este método.`,
+
+  `El brainstorming se utiliza para resolver problemas, crear estrategias, mejorar productos o servicios, innovar en proyectos y facilitar la toma de decisiones en equipo. Es muy común en empresas, universidades, marketing y tecnología.`,
+
+  `Las reglas fundamentales del brainstorming son: no criticar ninguna idea durante la sesión, aceptar todas las propuestas, buscar la mayor cantidad posible de ideas, permitir ideas creativas o poco comunes, combinar ideas existentes y asegurar la participación de todos los integrantes.`,
+
+  `Existen varios tipos de brainstorming: el individual, donde una sola persona genera ideas; el grupal, donde varias personas participan juntas; el digital, que se realiza mediante herramientas tecnológicas; y el inverso, que consiste en pensar primero cómo empeorar un problema para luego encontrar mejores soluciones.`,
+
+  `El proceso del brainstorming sigue estos pasos: primero se define claramente el problema, luego se reúne al equipo, se explican las reglas, se generan ideas libremente, se registran todas las propuestas, se evalúan las mejores y finalmente se aplica la solución seleccionada.`,
+
+  `Un ejemplo práctico de brainstorming: una tienda online que busca mejorar sus ventas realiza una sesión y surgen ideas como promociones semanales, publicidad en redes sociales, programas de puntos, mejor atención al cliente, envíos gratis y descuentos para nuevos clientes.`,
+
+  `Las ventajas del brainstorming incluyen: fomento de la creatividad, fortalecimiento del trabajo en equipo, generación rápida de soluciones, aumento de la participación, reducción del miedo a equivocarse e impulso a la innovación constante.`,
+
+  `Las desventajas del brainstorming son: posible desorden en las sesiones, poca participación de algunas personas, repetición de ideas, pérdida de tiempo y el hecho de que no siempre se obtienen buenas soluciones si no existe una buena organización.`,
+
+  `Herramientas digitales para brainstorming remoto: Miro, Trello, Notion, Google Docs y Microsoft Teams permiten realizar sesiones de brainstorming de forma remota y organizada, siendo muy utilizadas actualmente por empresas y equipos distribuidos.`,
+
+  `Caso exitoso de brainstorming — Google: utiliza esta técnica en sus equipos de innovación para desarrollar y mejorar productos como Gmail, Google Maps y Google Drive, permitiendo primero la libre generación de ideas antes de seleccionar las mejores.`,
+
+  `Caso exitoso de brainstorming — Pixar: utiliza brainstorming creativo para desarrollar historias, personajes y escenas antes de producir sus películas, lo que ha contribuido al éxito de obras como Toy Story e Inside Out.`,
+
+  `En conclusión, el brainstorming es una técnica sencilla pero muy poderosa que permite aprovechar la creatividad individual y grupal para encontrar mejores soluciones, mejorar procesos e impulsar la innovación, manteniéndose como una herramienta fundamental en el mundo empresarial, académico y tecnológico.`,
 ];
 
 function retrieve(query, k = 3) {
-  const stop = new Set(["el","la","los","las","es","un","una","de","y","a","que","en","con","como","por","se","su","lo","al"]);
+  const stop = new Set(["el","la","los","las","es","un","una","de","y","a","que","en","con","como","por","se","su","lo","al","del","las","más","para","una","sus"]);
   const tok = t => t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9\s]/g," ").split(/\s+/).filter(w => w.length > 2 && !stop.has(w));
   const qTokens = new Set(tok(query));
   return KNOWLEDGE_BASE
@@ -40,9 +47,17 @@ function retrieve(query, k = 3) {
 
 function buildPrompt(pregunta, ideas, chunks) {
   const contexto = chunks.join("\n\n---\n\n");
+
+  const restricciones = `RESTRICCIONES IMPORTANTES:
+- Solo puedes responder preguntas relacionadas con brainstorming, lluvia de ideas, creatividad grupal o los temas del contexto académico.
+- Si la pregunta no tiene relación con brainstorming, responde exactamente esto: "Solo puedo responder preguntas relacionadas con brainstorming y creatividad. ¿Tienes alguna duda sobre el tema?"
+- No respondas preguntas sobre otros temas como política, entretenimiento, matemáticas, recetas, etc.
+- No actúes como otro tipo de asistente. Tu único rol es ser experto en brainstorming.
+- Responde siempre en español.`;
+
   if (ideas && ideas.length > 0) {
     const listaIdeas = ideas.map((idea, i) => `${i + 1}. ${idea}`).join("\n");
-    return `Eres un experto universitario en brainstorming. Responde siempre en español.
+    return `Eres un experto universitario en brainstorming. ${restricciones}
 
 CONTEXTO ACADÉMICO:
 ---
@@ -60,7 +75,9 @@ Responde con esta estructura exacta:
 **4. Palabras y temas clave más mencionados**
 **5. Conclusión académica**`;
   }
-  return `Eres un asistente experto en brainstorming. Responde en español, de forma clara y útil.
+
+  return `Eres un asistente experto en brainstorming. ${restricciones}
+
 Basa tu respuesta SOLO en este contexto académico:
 ---
 ${contexto}
