@@ -1,7 +1,9 @@
 /**
  * api/chatbot.js — Vercel Serverless Function
- * Usa OpenRouter con varios modelos gratuitos de respaldo
- * Variable de entorno requerida en Vercel: OPENROUTER_API_KEY
+ * Usa Cloudflare Workers AI (10,000 requests/día gratis)
+ * Variables de entorno requeridas en Vercel:
+ *   CLOUDFLARE_ACCOUNT_ID
+ *   CLOUDFLARE_API_TOKEN
  */
 
 const KNOWLEDGE_BASE = [
@@ -23,14 +25,6 @@ const KNOWLEDGE_BASE = [
    se ramifican hacia afuera, permitiendo ver conexiones no lineales entre conceptos.`,
   `Evaluación de ideas: dot voting, matriz impacto vs esfuerzo, análisis FODA,
    agrupación por afinidad (affinity mapping) antes de evaluar y priorizar.`,
-];
-
-// Modelos gratuitos en orden de preferencia
-const MODELOS = [
-  "meta-llama/llama-3.2-3b-instruct:free",
-  "mistralai/mistral-7b-instruct:free",
-  "google/gemma-2-9b-it:free",
-  "qwen/qwen-2-7b-instruct:free",
 ];
 
 function retrieve(query, k = 3) {
@@ -74,36 +68,6 @@ ${contexto}
 PREGUNTA: ${pregunta}`;
 }
 
-async function llamarOpenRouter(apiKey, modelo, messages) {
-  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${apiKey}`,
-      "HTTP-Referer": "https://brainstorming-universidad.vercel.app",
-      "X-Title": "Brainstorming Chatbot"
-    },
-    body: JSON.stringify({
-      model: modelo,
-      messages,
-      max_tokens: 1024,
-      temperature: 0.7
-    }),
-  });
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    const msg = data?.error?.message || `HTTP ${response.status}`;
-    throw new Error(msg);
-  }
-
-  const texto = data.choices?.[0]?.message?.content;
-  if (!texto) throw new Error("Respuesta vacía del modelo");
-
-  return texto;
-}
-
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -114,65 +78,50 @@ export default async function handler(req, res) {
   const { pregunta, ideas } = req.body;
   if (!pregunta) return res.status(400).json({ error: "Falta el campo 'pregunta'" });
 
-  const apiKey = process.env.OPENROUTER_API_KEY;
-  if (!apiKey) return res.status(500).json({ error: "OPENROUTER_API_KEY no configurada en Vercel" });
+  const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
+  const apiToken  = process.env.CLOUDFLARE_API_TOKEN;
 
-  const query = ideas?.length ? `análisis brainstorming definición ${pregunta}` : pregunta;
-  const chunks = retrieve(query, 3);
-  const systemPrompt = buildPrompt(pregunta, ideas, chunks);
-  const messages = [
-    { role: "system", content: systemPrompt },
-    { role: "user",   content: pregunta }
-  ];
-
-  // Intentar cada modelo en orden hasta que uno funcione
-  const errores = [];
-  for (const modelo of MODELOS) {
-    try {
-      console.log(`[chatbot] Intentando modelo: ${modelo}`);
-      const respuesta = await llamarOpenRouter(apiKey, modelo, messages);
-      console.log(`[chatbot] Éxito con: ${modelo}`);
-      return res.status(200).json({ respuesta });
-    } catch (err) {
-      console.warn(`[chatbot] Falló ${modelo}:`, err.message);
-      errores.push(`${modelo}: ${err.message}`);
-    }
+  if (!accountId || !apiToken) {
+    return res.status(500).json({ error: "Faltan CLOUDFLARE_ACCOUNT_ID o CLOUDFLARE_API_TOKEN en Vercel" });
   }
 
-  // Si todos fallaron, devolver el fallback local
-  console.error("[chatbot] Todos los modelos fallaron:", errores);
-  const respuesta = generarFallback(pregunta, ideas);
-  return res.status(200).json({ respuesta, fallback: true });
-}
+  try {
+    const query = ideas?.length ? `análisis brainstorming definición ${pregunta}` : pregunta;
+    const chunks = retrieve(query, 3);
+    const systemPrompt = buildPrompt(pregunta, ideas, chunks);
 
-function generarFallback(pregunta, ideas) {
-  if (ideas && ideas.length > 0) {
-    const stop = new Set(["el","la","los","las","es","un","una","de","y","para","que","en","con","como","por"]);
-    const contador = {};
-    ideas.forEach(texto => {
-      texto.toLowerCase().replace(/[^\w\s]/g,"").split(/\s+/).forEach(p => {
-        if (!stop.has(p) && p.length > 3) contador[p] = (contador[p] || 0) + 1;
-      });
+    const url = `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/@cf/meta/llama-3.2-3b-instruct`;
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiToken}`,
+      },
+      body: JSON.stringify({
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user",   content: pregunta }
+        ],
+        max_tokens: 1024,
+        temperature: 0.7,
+      }),
     });
-    const top = Object.entries(contador).sort((a,b) => b[1]-a[1]).slice(0,5).map(([p]) => `**${p}**`).join(", ");
-    return `**1. Definición correcta de brainstorming**
-El brainstorming es una técnica grupal para generar ideas libremente sin críticas, desarrollada por Alex Osborn en 1953.
 
-**2. Concepto construido por el grupo**
-Los participantes lo asocian principalmente con creatividad, colaboración y generación de soluciones colectivas.
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err?.errors?.[0]?.message || `Cloudflare error ${response.status}`);
+    }
 
-**3. Comparación**
-El grupo capta la esencia participativa del brainstorming, aunque podría profundizar en sus reglas formales.
+    const data = await response.json();
+    const respuesta = data?.result?.response;
 
-**4. Palabras y temas clave más mencionados**
-${top || "creatividad, ideas, grupo, participación"}
+    if (!respuesta) throw new Error("Cloudflare no devolvió respuesta");
 
-**5. Conclusión académica**
-El grupo demuestra una comprensión intuitiva sólida del brainstorming como herramienta de construcción colectiva de conocimiento.`;
+    return res.status(200).json({ respuesta });
+
+  } catch (error) {
+    console.error("[chatbot] Error:", error.message);
+    return res.status(500).json({ error: error.message });
   }
-
-  return `El brainstorming es una técnica creativa grupal desarrollada por Alex Osborn en 1953. 
-Sus cuatro reglas clave son: aplazar el juicio, buscar cantidad sobre calidad, 
-dar la bienvenida a ideas disparatadas y combinar ideas de los demás.
-Técnicas relacionadas incluyen el Brainwriting, el método 6-3-5 y el SCAMPER.`;
 }
