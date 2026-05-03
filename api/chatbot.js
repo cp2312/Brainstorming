@@ -67,7 +67,7 @@ ${contexto}
 IDEAS ESCRITAS POR EL GRUPO:
 ${listaIdeas}
 
-Con base en las ideas del grupo y el contexto académico, redacta un único concepto breve y claro de qué es el brainstorming según lo que el grupo expresó. Máximo 5 oraciones. Sin títulos, sin listas, solo el concepto en párrafo.`;
+Con base en las ideas del grupo y el contexto académico, redacta un único concepto breve y claro de qué es el brainstorming según lo que el grupo expresó. Máximo 5 oraciones. Sin títulos, sin listas, solo el concepto en párrafo. Comienza tu respuesta con la frase: "En base a las ideas del grupo,"`;
 }
   return `Eres un asistente experto en brainstorming. ${restricciones}
 
