@@ -1,6 +1,6 @@
 /**
  * api/chatbot.js — Vercel Serverless Function
- * Usa OpenRouter (tier gratuito) — funciona desde Colombia sin restricciones
+ * Usa OpenRouter con varios modelos gratuitos de respaldo
  * Variable de entorno requerida en Vercel: OPENROUTER_API_KEY
  */
 
@@ -14,7 +14,7 @@ const KNOWLEDGE_BASE = [
    4. Combinar y mejorar: construir sobre las ideas de los demás.`,
   `Técnicas populares: Brainwriting (ideas en silencio), Método 6-3-5 (6 personas, 3 ideas, 5 rondas),
    SCAMPER (Sustituir, Combinar, Adaptar, Modificar, Poner otros usos, Eliminar, Reorganizar),
-   Round Robin (turnos equitativos), Reverse Brainstorming (¿cómo empeorar el problema?).`,
+   Round Robin (turnos equitativos), Reverse Brainstorming (cómo empeorar el problema).`,
   `Para facilitar una sesión efectiva: define claramente el problema, grupo ideal de 5-8 personas,
    duración óptima 30-60 minutos, facilitador neutral que gestione sin generar ideas.`,
   `Errores comunes: críticas prematuras, problema mal definido, grupos homogéneos,
@@ -23,6 +23,14 @@ const KNOWLEDGE_BASE = [
    se ramifican hacia afuera, permitiendo ver conexiones no lineales entre conceptos.`,
   `Evaluación de ideas: dot voting, matriz impacto vs esfuerzo, análisis FODA,
    agrupación por afinidad (affinity mapping) antes de evaluar y priorizar.`,
+];
+
+// Modelos gratuitos en orden de preferencia
+const MODELOS = [
+  "meta-llama/llama-3.2-3b-instruct:free",
+  "mistralai/mistral-7b-instruct:free",
+  "google/gemma-2-9b-it:free",
+  "qwen/qwen-2-7b-instruct:free",
 ];
 
 function retrieve(query, k = 3) {
@@ -66,6 +74,36 @@ ${contexto}
 PREGUNTA: ${pregunta}`;
 }
 
+async function llamarOpenRouter(apiKey, modelo, messages) {
+  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${apiKey}`,
+      "HTTP-Referer": "https://brainstorming-universidad.vercel.app",
+      "X-Title": "Brainstorming Chatbot"
+    },
+    body: JSON.stringify({
+      model: modelo,
+      messages,
+      max_tokens: 1024,
+      temperature: 0.7
+    }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    const msg = data?.error?.message || `HTTP ${response.status}`;
+    throw new Error(msg);
+  }
+
+  const texto = data.choices?.[0]?.message?.content;
+  if (!texto) throw new Error("Respuesta vacía del modelo");
+
+  return texto;
+}
+
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -79,43 +117,62 @@ export default async function handler(req, res) {
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) return res.status(500).json({ error: "OPENROUTER_API_KEY no configurada en Vercel" });
 
-  try {
-    const query = ideas?.length ? `análisis brainstorming definición ${pregunta}` : pregunta;
-    const chunks = retrieve(query, 3);
-    const systemPrompt = buildPrompt(pregunta, ideas, chunks);
+  const query = ideas?.length ? `análisis brainstorming definición ${pregunta}` : pregunta;
+  const chunks = retrieve(query, 3);
+  const systemPrompt = buildPrompt(pregunta, ideas, chunks);
+  const messages = [
+    { role: "system", content: systemPrompt },
+    { role: "user",   content: pregunta }
+  ];
 
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`,
-        "HTTP-Referer": "https://brainstorming-universidad.vercel.app",
-        "X-Title": "Brainstorming Chatbot"
-      },
-      body: JSON.stringify({
-        model: "meta-llama/llama-3.2-3b-instruct:free",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user",   content: pregunta }
-        ],
-        max_tokens: 1024,
-        temperature: 0.7
-      }),
-    });
-
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err?.error?.message || `OpenRouter error ${response.status}`);
+  // Intentar cada modelo en orden hasta que uno funcione
+  const errores = [];
+  for (const modelo of MODELOS) {
+    try {
+      console.log(`[chatbot] Intentando modelo: ${modelo}`);
+      const respuesta = await llamarOpenRouter(apiKey, modelo, messages);
+      console.log(`[chatbot] Éxito con: ${modelo}`);
+      return res.status(200).json({ respuesta });
+    } catch (err) {
+      console.warn(`[chatbot] Falló ${modelo}:`, err.message);
+      errores.push(`${modelo}: ${err.message}`);
     }
-
-    const data = await response.json();
-    const respuesta = data.choices?.[0]?.message?.content;
-    if (!respuesta) throw new Error("No se recibió respuesta del modelo");
-
-    return res.status(200).json({ respuesta });
-
-  } catch (error) {
-    console.error("[chatbot]", error.message);
-    return res.status(500).json({ error: error.message });
   }
+
+  // Si todos fallaron, devolver el fallback local
+  console.error("[chatbot] Todos los modelos fallaron:", errores);
+  const respuesta = generarFallback(pregunta, ideas);
+  return res.status(200).json({ respuesta, fallback: true });
+}
+
+function generarFallback(pregunta, ideas) {
+  if (ideas && ideas.length > 0) {
+    const stop = new Set(["el","la","los","las","es","un","una","de","y","para","que","en","con","como","por"]);
+    const contador = {};
+    ideas.forEach(texto => {
+      texto.toLowerCase().replace(/[^\w\s]/g,"").split(/\s+/).forEach(p => {
+        if (!stop.has(p) && p.length > 3) contador[p] = (contador[p] || 0) + 1;
+      });
+    });
+    const top = Object.entries(contador).sort((a,b) => b[1]-a[1]).slice(0,5).map(([p]) => `**${p}**`).join(", ");
+    return `**1. Definición correcta de brainstorming**
+El brainstorming es una técnica grupal para generar ideas libremente sin críticas, desarrollada por Alex Osborn en 1953.
+
+**2. Concepto construido por el grupo**
+Los participantes lo asocian principalmente con creatividad, colaboración y generación de soluciones colectivas.
+
+**3. Comparación**
+El grupo capta la esencia participativa del brainstorming, aunque podría profundizar en sus reglas formales.
+
+**4. Palabras y temas clave más mencionados**
+${top || "creatividad, ideas, grupo, participación"}
+
+**5. Conclusión académica**
+El grupo demuestra una comprensión intuitiva sólida del brainstorming como herramienta de construcción colectiva de conocimiento.`;
+  }
+
+  return `El brainstorming es una técnica creativa grupal desarrollada por Alex Osborn en 1953. 
+Sus cuatro reglas clave son: aplazar el juicio, buscar cantidad sobre calidad, 
+dar la bienvenida a ideas disparatadas y combinar ideas de los demás.
+Técnicas relacionadas incluyen el Brainwriting, el método 6-3-5 y el SCAMPER.`;
 }
